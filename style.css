@@ -11,7 +11,6 @@ body {
   --card-bg: rgba(15, 23, 42, 0.78);
   --card-border: rgba(255, 255, 255, 0.16);
   --accent: #facc15;
-  --accent-2: #fde047;
   --button-bg: #facc15;
   --button-text: #111827;
   --input-bg: rgba(15, 23, 42, 0.88);
@@ -33,7 +32,6 @@ body.theme-cinematic {
   --card-bg: rgba(15, 23, 42, 0.78);
   --card-border: rgba(255, 255, 255, 0.16);
   --accent: #facc15;
-  --accent-2: #fde047;
   --button-bg: #facc15;
   --button-text: #111827;
   --input-bg: rgba(15, 23, 42, 0.88);
@@ -48,7 +46,6 @@ body.theme-arcade {
   --card-bg: rgba(24, 24, 27, 0.82);
   --card-border: rgba(236, 72, 153, 0.55);
   --accent: #ec4899;
-  --accent-2: #22d3ee;
   --button-bg: #ec4899;
   --button-text: #ffffff;
   --input-bg: rgba(2, 6, 23, 0.9);
@@ -63,7 +60,6 @@ body.theme-noir {
   --card-bg: rgba(39, 39, 42, 0.8);
   --card-border: rgba(228, 228, 231, 0.22);
   --accent: #e5e7eb;
-  --accent-2: #a1a1aa;
   --button-bg: #e5e7eb;
   --button-text: #111111;
   --input-bg: rgba(24, 24, 27, 0.95);
@@ -78,7 +74,6 @@ body.theme-premiere {
   --card-bg: rgba(69, 10, 10, 0.78);
   --card-border: rgba(251, 191, 36, 0.4);
   --accent: #fbbf24;
-  --accent-2: #ef4444;
   --button-bg: #fbbf24;
   --button-text: #450a0a;
   --input-bg: rgba(69, 10, 10, 0.92);
@@ -93,7 +88,6 @@ body.theme-streaming {
   --card-bg: rgba(17, 24, 39, 0.88);
   --card-border: rgba(255, 255, 255, 0.12);
   --accent: #ef4444;
-  --accent-2: #f97316;
   --button-bg: #ef4444;
   --button-text: #ffffff;
   --input-bg: rgba(2, 6, 23, 0.92);
@@ -108,7 +102,6 @@ body.theme-ticket {
   --card-bg: rgba(255, 247, 237, 0.9);
   --card-border: rgba(120, 53, 15, 0.35);
   --accent: #b91c1c;
-  --accent-2: #92400e;
   --button-bg: #b91c1c;
   --button-text: #fff7ed;
   --input-bg: #fff7ed;
@@ -123,7 +116,6 @@ body.theme-cyber {
   --card-bg: rgba(2, 12, 27, 0.84);
   --card-border: rgba(34, 211, 238, 0.62);
   --accent: #22d3ee;
-  --accent-2: #22c55e;
   --button-bg: #22d3ee;
   --button-text: #020617;
   --input-bg: #020617;
