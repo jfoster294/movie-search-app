@@ -11,9 +11,26 @@
 <body>
   <main class="app">
     <section class="hero">
-      <p class="eyebrow">Movie Search App</p>
-      <h1>Find Movies Fast</h1>
-      <p>Search for movies, shows, and episodes. View posters, ratings, plots, actors, and release details.</p>
+      <div class="top-bar">
+        <div>
+          <p class="eyebrow">Movie Search App</p>
+          <h1>Find Movies Fast</h1>
+          <p>Search movies, shows, and episodes. View posters, ratings, plots, actors, and release details.</p>
+        </div>
+
+        <div class="theme-control">
+          <label for="themeSelect">Theme</label>
+          <select id="themeSelect">
+            <option value="cinematic">Cinematic Dark Theater</option>
+            <option value="arcade">Neon Movie Arcade</option>
+            <option value="noir">Classic Film Noir</option>
+            <option value="premiere">Red Carpet Premiere</option>
+            <option value="streaming">Streaming Platform</option>
+            <option value="ticket">Movie Ticket</option>
+            <option value="cyber">Cyber Cinema</option>
+          </select>
+        </div>
+      </div>
 
       <form id="searchForm" class="search-form">
         <input
