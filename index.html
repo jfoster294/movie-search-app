@@ -1,1 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <title>Movie Search App | Joel Foster</title>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <p class="eyebrow">Movie Search App</p>
+      <h1>Find Movies Fast</h1>
+      <p>Search for movies, shows, and episodes. View posters, ratings, plots, actors, and release details.</p>
+
+      <form id="searchForm" class="search-form">
+        <input
+          type="text"
+          id="movieInput"
+          placeholder="Search movie, example: Batman"
+          autocomplete="off"
+        />
+
+        <select id="typeSelect">
+          <option value="">All</option>
+          <option value="movie">Movies</option>
+          <option value="series">Series</option>
+          <option value="episode">Episodes</option>
+        </select>
+
+        <button type="submit">Search</button>
+      </form>
+
+      <p id="message" class="message"></p>
+    </section>
+
+    <section id="resultsSection" class="results-section hidden">
+      <div class="section-heading">
+        <h2>Search Results</h2>
+        <p id="resultCount"></p>
+      </div>
+
+      <div id="moviesGrid" class="movies-grid"></div>
+    </section>
+
+    <section id="detailsSection" class="details-section hidden">
+      <div class="section-heading">
+        <h2>Movie Details</h2>
+        <button id="closeDetailsButton" class="secondary-button">Close</button>
+      </div>
+
+      <article id="movieDetails" class="movie-details"></article>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
