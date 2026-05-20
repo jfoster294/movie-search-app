@@ -1,8 +1,9 @@
-const API_KEY = "YOUR_API_KEY_HERE";
+const API_KEY = "PASTE_YOUR_OMDB_API_KEY_HERE";
 
 const searchForm = document.getElementById("searchForm");
 const movieInput = document.getElementById("movieInput");
 const typeSelect = document.getElementById("typeSelect");
+const themeSelect = document.getElementById("themeSelect");
 const message = document.getElementById("message");
 
 const resultsSection = document.getElementById("resultsSection");
@@ -12,6 +13,20 @@ const moviesGrid = document.getElementById("moviesGrid");
 const detailsSection = document.getElementById("detailsSection");
 const movieDetails = document.getElementById("movieDetails");
 const closeDetailsButton = document.getElementById("closeDetailsButton");
+
+const themeClasses = [
+  "theme-cinematic",
+  "theme-arcade",
+  "theme-noir",
+  "theme-premiere",
+  "theme-streaming",
+  "theme-ticket",
+  "theme-cyber"
+];
+
+themeSelect.addEventListener("change", function () {
+  applyTheme(themeSelect.value);
+});
 
 searchForm.addEventListener("submit", function (event) {
   event.preventDefault();
@@ -32,8 +47,14 @@ closeDetailsButton.addEventListener("click", function () {
   movieDetails.innerHTML = "";
 });
 
+function applyTheme(theme) {
+  document.body.classList.remove(...themeClasses);
+  document.body.classList.add(`theme-${theme}`);
+  localStorage.setItem("selectedMovieTheme", theme);
+}
+
 async function searchMovies(searchText, selectedType) {
-  if (API_KEY === "YOUR_API_KEY_HERE") {
+  if (API_KEY === "PASTE_YOUR_OMDB_API_KEY_HERE") {
     showMessage("Add your OMDb API key in script.js first.");
     return;
   }
@@ -221,6 +242,10 @@ function capitalizeText(text) {
 function showMessage(text) {
   message.textContent = text;
 }
+
+const savedTheme = localStorage.getItem("selectedMovieTheme") || "cinematic";
+themeSelect.value = savedTheme;
+applyTheme(savedTheme);
 
 const lastMovieSearch = localStorage.getItem("lastMovieSearch");
 const lastMovieType = localStorage.getItem("lastMovieType") || "";
