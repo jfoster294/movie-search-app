@@ -1,371 +1,198 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Cinema Library | Joel Foster</title>
+  <title>Cinema Library | Local Movie Dashboard</title>
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="app-shell">
-    <aside class="sidebar">
-      <a href="https://jfoster294.github.io/portfolio-site/" class="back-link">← Portfolio</a>
-
-      <div class="brand">
-        <div class="brand-orb">▶</div>
-
+  <div class="app-shell">
+    <header class="hero">
+      <nav class="navbar">
         <div>
+          <p class="eyebrow">Local Movie Server Dashboard</p>
           <h1>Cinema Library</h1>
-          <p>Media Core Control</p>
         </div>
-      </div>
 
-      <nav class="side-nav">
-        <a href="#scanner" class="active">
-          <span>⌕</span>
-          <div>
-            <strong>Scan Folder</strong>
-            <small>Add real files</small>
-          </div>
-        </a>
-
-        <a href="#library">
-          <span>▦</span>
-          <div>
-            <strong>Library</strong>
-            <small>Browse files</small>
-          </div>
-        </a>
-
-        <a href="#storage">
-          <span>▣</span>
-          <div>
-            <strong>Storage</strong>
-            <small>Drive bays</small>
-          </div>
-        </a>
-
-        <a href="#help">
-          <span>?</span>
-          <div>
-            <strong>Help</strong>
-            <small>How it works</small>
-          </div>
-        </a>
+        <button id="themeButton" class="theme-button" type="button">
+          Toggle Theme
+        </button>
       </nav>
 
-      <section class="sidebar-status">
-        <h2>System Status</h2>
-
-        <div class="system-row">
-          <span>Scan Mode</span>
-          <strong>Real Files</strong>
-        </div>
-
-        <div class="system-row">
-          <span>Data Source</span>
-          <strong>Local Folder</strong>
-        </div>
-
-        <div class="system-row">
-          <span>Fake Data</span>
-          <strong>Disabled</strong>
-        </div>
-      </section>
-
-      <section class="sidebar-card">
-        <p>Total Scanned</p>
-        <h2 id="sidebarStorageUsed">0 GB</h2>
-
-        <div class="mini-meter">
-          <span id="sidebarStorageBar"></span>
-        </div>
-
-        <small id="sidebarStoragePercent">Add drive capacity to calculate usage.</small>
-      </section>
-    </aside>
-
-    <section class="main-console">
-      <header class="system-bar">
-        <div>
-          <span class="status-dot"></span>
-          <strong id="scanStatusText">WAITING FOR SCAN</strong>
-        </div>
-
-        <div>
-          <strong id="integrityText">0 FILES INDEXED</strong>
-        </div>
-
-        <div>
-          <span class="status-dot blue"></span>
-          <strong>LOCAL MODE</strong>
-        </div>
-
-        <div>
-          <strong id="clockText">--:--</strong>
-        </div>
-      </header>
-
-      <section class="dashboard-grid">
-        <section id="scanner" class="panel scan-panel">
-          <p class="eyebrow">Scanner</p>
-          <h2>Scan a real movie folder</h2>
-
-          <p class="panel-copy">
-            Choose a folder from your device. Cinema Library will only display
-            real video files you selected. No fake starter movies are loaded.
+      <section class="hero-grid">
+        <div class="hero-copy">
+          <p class="badge">No fake data • Real local files only</p>
+          <h2>Your personal Plex-style movie library scanner.</h2>
+          <p>
+            Select your movie folders or drives, and this app will build a clean dashboard
+            from your real files, including movie count, storage size, quality, file type,
+            drive label, and saved scan history.
           </p>
 
-          <div class="scanner-form">
-            <label for="driveLabelInput">Drive / Bay Label</label>
-            <input
-              type="text"
-              id="driveLabelInput"
-              placeholder="Example: Bay 1 Movie HDD"
-            />
-
-            <label for="driveCapacityInput">Drive Capacity in TB Optional</label>
-            <input
-              type="number"
-              id="driveCapacityInput"
-              min="0"
-              step="0.1"
-              placeholder="Example: 26"
-            />
-
-            <input
-              type="file"
-              id="folderInput"
-              webkitdirectory
-              directory
-              multiple
-              hidden
-            />
-
-            <button id="chooseFolderButton" class="primary-button" type="button">
-              Choose Movie Folder
+          <div class="hero-actions">
+            <button id="scanFolderButton" class="primary-button" type="button">
+              Scan Movie Folder
             </button>
 
-            <button id="clearAllButton" class="danger-button" type="button">
-              Clear All Saved Scans
+            <button id="scanFilesButton" class="secondary-button" type="button">
+              Select Movie Files
             </button>
           </div>
 
-          <div id="scanMessage" class="scan-message">
-            No folder scanned yet. Add a drive label, then choose a movie folder.
-          </div>
-        </section>
-
-        <section class="panel core-panel">
-          <div id="mediaCoreRing" class="core-meter">
-            <div>
-              <p>Media Core</p>
-              <h2 id="corePercent">0%</h2>
-              <span id="coreStorageText">0 GB scanned</span>
-            </div>
-          </div>
-
-          <div class="core-caption">
-            <strong id="coreStatusLine">Ready to scan your first folder.</strong>
-            <span id="coreSubLine">Capacity is optional but helps calculate usage.</span>
-          </div>
-        </section>
-
-        <section class="panel viewport-panel">
-          <div class="space-window">
-            <div class="planet"></div>
-            <div class="stars"></div>
-          </div>
-
-          <div class="node-card">
-            <p>Cinema Library Node</p>
-            <strong id="nodeDriveName">No drive scanned</strong>
-            <span id="nodeDriveDetail">Choose a folder to begin</span>
-          </div>
-        </section>
-
-        <article class="quick-stat">
-          <span>▦</span>
-          <div>
-            <p>Total Movie Files</p>
-            <h3 id="totalMoviesStat">0</h3>
-          </div>
-        </article>
-
-        <article class="quick-stat">
-          <span>▣</span>
-          <div>
-            <p>Total Size Scanned</p>
-            <h3 id="totalStorageStat">0 GB</h3>
-          </div>
-        </article>
-
-        <article class="quick-stat">
-          <span>4K</span>
-          <div>
-            <p>4K / 8K Files</p>
-            <h3 id="highQualityStat">0</h3>
-          </div>
-        </article>
-
-        <article class="quick-stat">
-          <span>↻</span>
-          <div>
-            <p>Last Scan</p>
-            <h3 id="lastScanStat">Never</h3>
-          </div>
-        </article>
-      </section>
-
-      <section id="storage" class="panel">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Storage Bays</p>
-            <h2>Drive Bay Overview</h2>
-          </div>
-
-          <p class="section-note">
-            Each bay comes from a real folder scan. Re-scan the same label to update that bay.
+          <p class="small-note">
+            Best on Chrome or Edge desktop. Folder scanning depends on browser support.
           </p>
         </div>
 
-        <div id="driveGrid" class="drive-grid"></div>
+        <div class="scan-card">
+          <div class="scan-orb"></div>
+          <h3>Library Status</h3>
+          <p id="libraryStatus">No library scanned yet.</p>
+
+          <div class="scan-actions">
+            <button id="exportButton" class="ghost-button" type="button">
+              Export JSON
+            </button>
+
+            <button id="clearButton" class="danger-button" type="button">
+              Clear Library
+            </button>
+          </div>
+        </div>
+      </section>
+    </header>
+
+    <input
+      id="folderInput"
+      class="hidden-input"
+      type="file"
+      webkitdirectory
+      directory
+      multiple
+    />
+
+    <input
+      id="fileInput"
+      class="hidden-input"
+      type="file"
+      multiple
+      accept=".mp4,.mkv,.avi,.mov,.m4v,.wmv,.webm,.flv,.ts,.m2ts"
+    />
+
+    <main>
+      <section class="stats-grid">
+        <article class="stat-card">
+          <span>Total Movies</span>
+          <strong id="totalMovies">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Total Size</span>
+          <strong id="totalSize">0 GB</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>4K / UHD</span>
+          <strong id="fourKMovies">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Drives / Folders</span>
+          <strong id="driveCount">0</strong>
+        </article>
       </section>
 
-      <section class="content-layout">
-        <section id="library" class="panel library-panel">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Library</p>
-              <h2>Scanned Movie Files</h2>
-            </div>
+      <section class="controls-panel">
+        <div class="search-box">
+          <label for="searchInput">Search Library</label>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Search by movie name, quality, drive, or file type..."
+          />
+        </div>
 
-            <p id="resultCount" class="section-note">0 files showing</p>
-          </div>
-
-          <div class="library-toolbar">
-            <input
-              type="text"
-              id="searchInput"
-              placeholder="Search title, file name, drive, or path..."
-            />
-
-            <select id="driveFilter">
-              <option value="All">All Drives</option>
-            </select>
-
+        <div class="filters">
+          <div>
+            <label for="qualityFilter">Quality</label>
             <select id="qualityFilter">
-              <option value="All">All Qualities</option>
+              <option value="all">All Quality</option>
+              <option value="8K">8K</option>
+              <option value="4K">4K / UHD</option>
+              <option value="1080p">1080p</option>
+              <option value="720p">720p</option>
+              <option value="SD">SD</option>
+              <option value="Unknown">Unknown</option>
             </select>
-
-            <select id="extensionFilter">
-              <option value="All">All File Types</option>
-            </select>
-
-            <select id="statusFilter">
-              <option value="All">All Statuses</option>
-              <option value="Not Watched">Not Watched</option>
-              <option value="Watching">Watching</option>
-              <option value="Watched">Watched</option>
-            </select>
-
-            <select id="sortFilter">
-              <option value="Largest">Sort: Largest File</option>
-              <option value="Title">Sort: Title A-Z</option>
-              <option value="Newest">Sort: Newest Modified</option>
-              <option value="Quality">Sort: Highest Quality</option>
-            </select>
-
-            <button id="clearFiltersButton" type="button">Clear</button>
-            <button id="exportButton" type="button">Export CSV</button>
           </div>
 
-          <div id="movieGrid" class="movie-grid"></div>
-
-          <div id="emptyState" class="empty-state hidden">
-            <h3>No real movie files found.</h3>
-            <p>
-              Scan a folder with movie files like MP4, MKV, MOV, AVI, M4V, WEBM, or WMV.
-            </p>
-            <a href="#scanner" class="primary-button">Scan Folder</a>
+          <div>
+            <label for="driveFilter">Drive / Folder</label>
+            <select id="driveFilter">
+              <option value="all">All Drives</option>
+            </select>
           </div>
-        </section>
 
-        <aside class="insight-column">
-          <section class="panel insight-panel">
-            <div class="section-heading compact">
-              <div>
-                <p class="eyebrow">Breakdown</p>
-                <h2>Quality Mix</h2>
-              </div>
-            </div>
-
-            <div id="qualityBreakdown" class="breakdown-list"></div>
-          </section>
-
-          <section class="panel insight-panel">
-            <div class="section-heading compact">
-              <div>
-                <p class="eyebrow">Largest</p>
-                <h2>Biggest Files</h2>
-              </div>
-            </div>
-
-            <div id="largestFilesList" class="largest-list"></div>
-          </section>
-
-          <section class="panel insight-panel">
-            <div class="section-heading compact">
-              <div>
-                <p class="eyebrow">Activity</p>
-                <h2>Recent Scans</h2>
-              </div>
-            </div>
-
-            <div id="activityList" class="activity-list"></div>
-          </section>
-        </aside>
+          <div>
+            <label for="sortSelect">Sort</label>
+            <select id="sortSelect">
+              <option value="nameAsc">Name A-Z</option>
+              <option value="nameDesc">Name Z-A</option>
+              <option value="sizeDesc">Largest First</option>
+              <option value="sizeAsc">Smallest First</option>
+              <option value="quality">Best Quality First</option>
+              <option value="newest">Newest Modified</option>
+            </select>
+          </div>
+        </div>
       </section>
 
-      <section id="help" class="panel help-section">
+      <section class="library-header">
         <div>
-          <p class="eyebrow">Help</p>
-          <h2>Simple rules</h2>
+          <p class="eyebrow">Your Collection</p>
+          <h2 id="libraryTitle">No movies loaded</h2>
         </div>
 
-        <div class="help-grid">
-          <article>
-            <h3>What it can do</h3>
-            <p>
-              It can read the folder you choose, list real video files, calculate
-              real sizes, show real relative paths, infer quality from filenames,
-              track status, and export the scan as CSV.
-            </p>
-          </article>
-
-          <article>
-            <h3>What it cannot do</h3>
-            <p>
-              A GitHub Pages website cannot automatically scan all connected drives
-              without your permission. You must select the folder each time you want
-              to refresh a drive bay.
-            </p>
-          </article>
-        </div>
+        <p id="lastScanText" class="small-note">Last scan: never</p>
       </section>
-    </section>
-  </main>
 
-  <section id="detailModal" class="modal hidden">
-    <div class="modal-card">
-      <button id="closeModalButton" class="close-button" type="button">×</button>
-      <div id="modalContent"></div>
+      <section id="emptyState" class="empty-state">
+        <h2>Scan your first movie folder.</h2>
+        <p>
+          Choose a folder that contains your real movie files. The dashboard will build itself
+          from your actual files only.
+        </p>
+      </section>
+
+      <section id="movieGrid" class="movie-grid"></section>
+    </main>
+  </div>
+
+  <div id="videoModal" class="video-modal hidden">
+    <div class="video-card">
+      <div class="video-header">
+        <div>
+          <p class="eyebrow">Now Playing</p>
+          <h3 id="videoTitle">Movie Preview</h3>
+        </div>
+
+        <button id="closeVideoButton" class="ghost-button" type="button">
+          Close
+        </button>
+      </div>
+
+      <video id="videoPlayer" controls></video>
+
+      <p class="small-note">
+        Playback only works during the current browser session after selecting files.
+        Saved metadata remains after refresh, but browsers do not permanently save file access.
+      </p>
     </div>
-  </section>
-
-  <div id="toast" class="toast hidden"></div>
+  </div>
 
   <script src="script.js"></script>
 </body>
