@@ -17,31 +17,31 @@
         <div class="brand-icon">🎬</div>
         <div>
           <h1>Cinema Library</h1>
-          <p>Personal movie storage dashboard</p>
+          <p>Real movie folder scanner</p>
         </div>
       </div>
 
       <nav class="side-nav">
-        <a href="#dashboard" class="active">Dashboard</a>
-        <a href="#storage">Storage Drives</a>
-        <a href="#addMovie">Add Movie</a>
-        <a href="#library">Movie Library</a>
+        <a href="#scanner" class="active">Scan Folder</a>
+        <a href="#stats">Stats</a>
+        <a href="#library">Library</a>
+        <a href="#help">Help</a>
       </nav>
 
       <div class="sidebar-card">
-        <p>Storage Used</p>
+        <p>Total Scanned</p>
         <h2 id="sidebarStorageUsed">0 GB</h2>
         <div class="small-progress">
           <span id="sidebarStorageBar"></span>
         </div>
-        <small id="sidebarStoragePercent">0% of total capacity</small>
+        <small id="sidebarStoragePercent">Add drive capacity to show percentage.</small>
       </div>
 
       <div class="sidebar-tip">
-        <strong>How it works</strong>
+        <strong>Real data mode</strong>
         <p>
-          Add movies, choose a drive, set quality, track watch status,
-          and save your cinema library locally.
+          This app only shows movie files you choose from your own folder.
+          Nothing fake is loaded.
         </p>
       </div>
     </aside>
@@ -49,199 +49,178 @@
     <section class="main-content">
       <header class="top-bar">
         <div>
-          <p class="eyebrow">Home Cinema Manager</p>
-          <h2>Manage movies across drives.</h2>
+          <p class="eyebrow">Local-First Cinema Storage</p>
+          <h2>Scan your real movie folder.</h2>
         </div>
 
         <div class="top-actions">
-          <input type="text" id="globalSearchInput" placeholder="Search your library..." />
-          <button id="resetDemoButton" type="button">Reset Demo</button>
+          <input type="text" id="globalSearchInput" placeholder="Search scanned movies..." />
+          <button id="exportButton" type="button">Export CSV</button>
         </div>
       </header>
 
-      <section id="dashboard" class="hero-panel">
+      <section class="hero-panel">
         <div class="hero-copy">
-          <p class="eyebrow">Featured Setup</p>
-          <h1>Build your personal movie server library.</h1>
+          <p class="eyebrow">Home Movie Library</p>
+          <h1>Index real movie files from your device.</h1>
           <p>
-            Track what movies you own, where they are stored, what quality they are,
-            how large the files are, and what you have watched.
+            Choose a movie folder, label the drive, and Cinema Library will scan
+            your actual files, calculate storage used, infer quality, and save
+            the scanned library locally in your browser.
           </p>
 
           <div class="hero-actions">
-            <a href="#addMovie" class="primary-button">Add Movie</a>
+            <a href="#scanner" class="primary-button">Scan Movie Folder</a>
             <a href="#library" class="secondary-button">View Library</a>
           </div>
         </div>
 
         <div class="help-panel">
-          <h3>Quick Guide</h3>
+          <h3>Simple workflow</h3>
 
           <div class="guide-step">
             <span>1</span>
-            <p>Pick a sample movie or type your own.</p>
+            <p>Type a drive label like “NAS Drive 1” or “Movie HDD.”</p>
           </div>
 
           <div class="guide-step">
             <span>2</span>
-            <p>Choose quality, file size, and storage drive.</p>
+            <p>Click “Choose Movie Folder” and select your real folder.</p>
           </div>
 
           <div class="guide-step">
             <span>3</span>
-            <p>Filter your library by drive, quality, or watch status.</p>
+            <p>Review your real files, sizes, quality guesses, and paths.</p>
           </div>
         </div>
       </section>
 
-      <section class="stats-grid">
+      <section id="scanner" class="section-card scanner-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Scanner</p>
+            <h2>Scan a movie folder</h2>
+          </div>
+
+          <p class="section-note">
+            Browser security requires you to choose the folder manually.
+          </p>
+        </div>
+
+        <div class="scanner-grid">
+          <div>
+            <label for="driveLabelInput">Drive / Folder Label</label>
+            <input
+              type="text"
+              id="driveLabelInput"
+              placeholder="Example: NAS Drive 1, Movie HDD, External SSD"
+            />
+          </div>
+
+          <div>
+            <label for="driveCapacityInput">Drive Capacity in TB Optional</label>
+            <input
+              type="number"
+              id="driveCapacityInput"
+              min="0"
+              step="0.1"
+              placeholder="Example: 8"
+            />
+          </div>
+
+          <div class="scanner-buttons">
+            <input
+              type="file"
+              id="folderInput"
+              webkitdirectory
+              directory
+              multiple
+              hidden
+            />
+
+            <button id="chooseFolderButton" class="primary-button" type="button">
+              Choose Movie Folder
+            </button>
+
+            <button id="clearLibraryButton" class="danger-button" type="button">
+              Clear Saved Scan
+            </button>
+          </div>
+        </div>
+
+        <div id="scanStatus" class="scan-status">
+          No folder scanned yet. Choose a folder to begin.
+        </div>
+      </section>
+
+      <section id="stats" class="stats-grid">
         <article class="stat-card">
-          <p>Total Movies</p>
+          <p>Movie Files</p>
           <h2 id="totalMoviesStat">0</h2>
         </article>
 
         <article class="stat-card">
-          <p>Total Storage</p>
+          <p>Total Size</p>
           <h2 id="totalStorageStat">0 GB</h2>
         </article>
 
         <article class="stat-card">
-          <p>4K / 8K Movies</p>
+          <p>4K / 8K Files</p>
           <h2 id="highQualityStat">0</h2>
         </article>
 
         <article class="stat-card">
-          <p>Watched</p>
-          <h2 id="watchedStat">0</h2>
+          <p>Last Scan</p>
+          <h2 id="lastScanStat">Never</h2>
         </article>
       </section>
 
-      <section id="storage" class="section-card">
+      <section class="section-card">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Storage Drive View</p>
-            <h2>Drive Overview</h2>
+            <p class="eyebrow">Drive State</p>
+            <h2>Current Scanned Source</h2>
           </div>
 
-          <p class="section-note">Usage is calculated from the movies saved in your library.</p>
+          <p class="section-note">
+            Usage is calculated from the actual movie files selected.
+          </p>
         </div>
 
-        <div id="storageGrid" class="storage-grid"></div>
-      </section>
-
-      <section id="addMovie" class="section-card">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Add Movie</p>
-            <h2>Add a title to your library</h2>
-          </div>
-
-          <p class="section-note">Use the sample dropdown or enter your own movie manually.</p>
-        </div>
-
-        <form id="movieForm" class="movie-form">
-          <div class="form-grid">
-            <div>
-              <label for="sampleMovieSelect">Sample Movie</label>
-              <select id="sampleMovieSelect">
-                <option value="">Choose a sample movie</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="movieTitleInput">Movie Title</label>
-              <input type="text" id="movieTitleInput" placeholder="Example: Interstellar" required />
-            </div>
-
-            <div>
-              <label for="movieYearInput">Year</label>
-              <input type="number" id="movieYearInput" placeholder="2014" min="1900" max="2100" />
-            </div>
-
-            <div>
-              <label for="movieGenreInput">Genre</label>
-              <input type="text" id="movieGenreInput" placeholder="Sci-Fi, Drama, Action" />
-            </div>
-
-            <div>
-              <label for="movieRuntimeInput">Runtime</label>
-              <input type="text" id="movieRuntimeInput" placeholder="2h 49m" />
-            </div>
-
-            <div>
-              <label for="movieQualitySelect">Quality</label>
-              <select id="movieQualitySelect">
-                <option value="720p">720p</option>
-                <option value="1080p">1080p</option>
-                <option value="4K" selected>4K</option>
-                <option value="8K">8K</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="movieSizeInput">File Size GB</label>
-              <input type="number" id="movieSizeInput" placeholder="75" min="1" step="1" required />
-            </div>
-
-            <div>
-              <label for="movieDriveSelect">Storage Drive</label>
-              <select id="movieDriveSelect">
-                <option value="NAS Drive 1">NAS Drive 1</option>
-                <option value="NAS Drive 2">NAS Drive 2</option>
-                <option value="External SSD">External SSD</option>
-                <option value="Archive Drive">Archive Drive</option>
-              </select>
-            </div>
-
-            <div>
-              <label for="movieStatusSelect">Watch Status</label>
-              <select id="movieStatusSelect">
-                <option value="Not Watched">Not Watched</option>
-                <option value="Watching">Watching</option>
-                <option value="Watched">Watched</option>
-              </select>
-            </div>
-
-            <div class="checkbox-row">
-              <input type="checkbox" id="movieFavoriteInput" />
-              <label for="movieFavoriteInput">Mark as favorite</label>
-            </div>
-          </div>
-
-          <textarea id="movieNotesInput" placeholder="Optional notes: Extended cut, remastered version, family favorite, etc."></textarea>
-
-          <button type="submit" class="primary-button full-width">Add Movie to Library</button>
-          <p id="formMessage" class="form-message"></p>
-        </form>
+        <div id="driveStateGrid" class="storage-grid"></div>
       </section>
 
       <section id="library" class="section-card">
         <div class="section-heading">
           <div>
             <p class="eyebrow">Movie Library</p>
-            <h2>Your Collection</h2>
+            <h2>Scanned Movies</h2>
           </div>
 
-          <p id="resultCount" class="section-note">0 movies showing</p>
+          <p id="resultCount" class="section-note">0 files showing</p>
         </div>
 
         <div class="filters">
-          <select id="driveFilter">
-            <option value="All">All Drives</option>
-          </select>
-
           <select id="qualityFilter">
             <option value="All">All Qualities</option>
           </select>
 
+          <select id="extensionFilter">
+            <option value="All">All File Types</option>
+          </select>
+
           <select id="statusFilter">
             <option value="All">All Statuses</option>
+            <option value="Not Watched">Not Watched</option>
+            <option value="Watching">Watching</option>
+            <option value="Watched">Watched</option>
           </select>
 
           <select id="sortFilter">
-            <option value="Newest">Sort: Newest Added</option>
+            <option value="Largest">Sort: Largest File</option>
             <option value="Title">Sort: Title A-Z</option>
-            <option value="Size">Sort: Largest File</option>
+            <option value="Newest">Sort: Newest Modified</option>
+            <option value="Quality">Sort: Quality</option>
           </select>
 
           <button id="clearFiltersButton" type="button">Clear Filters</button>
@@ -250,21 +229,42 @@
         <div id="movieGrid" class="movie-grid"></div>
 
         <div id="emptyState" class="empty-state hidden">
-          <h3>No movies found.</h3>
-          <p>Try clearing the filters or add a new movie to your library.</p>
-          <a href="#addMovie" class="primary-button">Add Movie</a>
+          <h3>No real movie files found.</h3>
+          <p>
+            Scan a folder that contains movie files like MP4, MKV, MOV, AVI,
+            M4V, WEBM, or WMV.
+          </p>
+          <a href="#scanner" class="primary-button">Scan Folder</a>
         </div>
       </section>
 
-      <section class="section-card">
+      <section id="help" class="section-card">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Activity</p>
-            <h2>Recent Changes</h2>
+            <p class="eyebrow">Help</p>
+            <h2>What this app can and cannot do</h2>
           </div>
         </div>
 
-        <div id="activityList" class="activity-list"></div>
+        <div class="help-grid">
+          <article>
+            <h3>What it can do</h3>
+            <p>
+              It can scan the folder you choose, read real file names, calculate
+              real file sizes, show real paths, infer quality from filenames,
+              and save the scanned metadata locally.
+            </p>
+          </article>
+
+          <article>
+            <h3>What it cannot do</h3>
+            <p>
+              A browser website cannot automatically scan every drive on your
+              computer without permission. You must select the folder each time
+              you want to refresh the current state.
+            </p>
+          </article>
+        </div>
       </section>
     </section>
   </main>
