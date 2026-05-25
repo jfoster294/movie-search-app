@@ -1,255 +1,102 @@
-const STORAGE_KEY = "cinemaLibraryMovies";
-const ACTIVITY_KEY = "cinemaLibraryActivity";
+const STORAGE_KEY = "realCinemaLibraryScan";
+const SETTINGS_KEY = "realCinemaLibrarySettings";
 
-const driveCapacities = {
-  "NAS Drive 1": 8192,
-  "NAS Drive 2": 8192,
-  "External SSD": 2048,
-  "Archive Drive": 20480
-};
+const supportedExtensions = ["mp4", "mkv", "mov", "avi", "m4v", "webm", "wmv"];
 
-const sampleMovies = [
-  {
-    title: "Interstellar",
-    year: 2014,
-    genre: "Sci-Fi, Adventure, Drama",
-    runtime: "2h 49m",
-    suggestedSize: 82
-  },
-  {
-    title: "Dune: Part Two",
-    year: 2024,
-    genre: "Sci-Fi, Adventure",
-    runtime: "2h 46m",
-    suggestedSize: 78
-  },
-  {
-    title: "The Dark Knight",
-    year: 2008,
-    genre: "Action, Crime, Drama",
-    runtime: "2h 32m",
-    suggestedSize: 64
-  },
-  {
-    title: "Blade Runner 2049",
-    year: 2017,
-    genre: "Sci-Fi, Thriller",
-    runtime: "2h 44m",
-    suggestedSize: 76
-  },
-  {
-    title: "The Matrix",
-    year: 1999,
-    genre: "Sci-Fi, Action",
-    runtime: "2h 16m",
-    suggestedSize: 48
-  },
-  {
-    title: "Oppenheimer",
-    year: 2023,
-    genre: "Biography, Drama, History",
-    runtime: "3h 0m",
-    suggestedSize: 88
-  },
-  {
-    title: "John Wick Chapter 4",
-    year: 2023,
-    genre: "Action, Thriller",
-    runtime: "2h 49m",
-    suggestedSize: 70
-  },
-  {
-    title: "Top Gun Maverick",
-    year: 2022,
-    genre: "Action, Drama",
-    runtime: "2h 10m",
-    suggestedSize: 58
-  },
-  {
-    title: "Jurassic Park",
-    year: 1993,
-    genre: "Adventure, Sci-Fi",
-    runtime: "2h 7m",
-    suggestedSize: 42
-  },
-  {
-    title: "Back to the Future",
-    year: 1985,
-    genre: "Adventure, Comedy, Sci-Fi",
-    runtime: "1h 56m",
-    suggestedSize: 36
-  }
-];
-
-const starterMovies = [
-  createMovie("Interstellar", 2014, "Sci-Fi, Adventure, Drama", "2h 49m", "4K", 82, "NAS Drive 1", "Watched", true),
-  createMovie("Dune: Part Two", 2024, "Sci-Fi, Adventure", "2h 46m", "4K", 78, "NAS Drive 1", "Watching", false),
-  createMovie("The Dark Knight", 2008, "Action, Crime, Drama", "2h 32m", "4K", 64, "NAS Drive 2", "Watched", true),
-  createMovie("Blade Runner 2049", 2017, "Sci-Fi, Thriller", "2h 44m", "4K", 76, "Archive Drive", "Not Watched", false),
-  createMovie("The Matrix", 1999, "Sci-Fi, Action", "2h 16m", "1080p", 32, "External SSD", "Watched", true),
-  createMovie("Oppenheimer", 2023, "Biography, Drama, History", "3h 0m", "4K", 88, "NAS Drive 2", "Not Watched", false)
-];
-
-const sampleMovieSelect = document.getElementById("sampleMovieSelect");
-const movieForm = document.getElementById("movieForm");
-const movieTitleInput = document.getElementById("movieTitleInput");
-const movieYearInput = document.getElementById("movieYearInput");
-const movieGenreInput = document.getElementById("movieGenreInput");
-const movieRuntimeInput = document.getElementById("movieRuntimeInput");
-const movieQualitySelect = document.getElementById("movieQualitySelect");
-const movieSizeInput = document.getElementById("movieSizeInput");
-const movieDriveSelect = document.getElementById("movieDriveSelect");
-const movieStatusSelect = document.getElementById("movieStatusSelect");
-const movieFavoriteInput = document.getElementById("movieFavoriteInput");
-const movieNotesInput = document.getElementById("movieNotesInput");
-const formMessage = document.getElementById("formMessage");
+const folderInput = document.getElementById("folderInput");
+const chooseFolderButton = document.getElementById("chooseFolderButton");
+const clearLibraryButton = document.getElementById("clearLibraryButton");
+const driveLabelInput = document.getElementById("driveLabelInput");
+const driveCapacityInput = document.getElementById("driveCapacityInput");
+const scanStatus = document.getElementById("scanStatus");
 
 const globalSearchInput = document.getElementById("globalSearchInput");
-const driveFilter = document.getElementById("driveFilter");
+const exportButton = document.getElementById("exportButton");
+
 const qualityFilter = document.getElementById("qualityFilter");
+const extensionFilter = document.getElementById("extensionFilter");
 const statusFilter = document.getElementById("statusFilter");
 const sortFilter = document.getElementById("sortFilter");
 const clearFiltersButton = document.getElementById("clearFiltersButton");
-const resetDemoButton = document.getElementById("resetDemoButton");
 
 const totalMoviesStat = document.getElementById("totalMoviesStat");
 const totalStorageStat = document.getElementById("totalStorageStat");
 const highQualityStat = document.getElementById("highQualityStat");
-const watchedStat = document.getElementById("watchedStat");
+const lastScanStat = document.getElementById("lastScanStat");
+
 const sidebarStorageUsed = document.getElementById("sidebarStorageUsed");
 const sidebarStorageBar = document.getElementById("sidebarStorageBar");
 const sidebarStoragePercent = document.getElementById("sidebarStoragePercent");
 
-const storageGrid = document.getElementById("storageGrid");
+const driveStateGrid = document.getElementById("driveStateGrid");
 const movieGrid = document.getElementById("movieGrid");
 const resultCount = document.getElementById("resultCount");
 const emptyState = document.getElementById("emptyState");
-const activityList = document.getElementById("activityList");
 
 const detailModal = document.getElementById("detailModal");
 const modalContent = document.getElementById("modalContent");
 const closeModalButton = document.getElementById("closeModalButton");
 const toast = document.getElementById("toast");
 
-let movies = loadMovies();
-let activity = loadActivity();
+let scannedMovies = loadScannedMovies();
+let settings = loadSettings();
 
-populateSampleMovies();
-populateFilterOptions();
+driveLabelInput.value = settings.driveLabel || "";
+driveCapacityInput.value = settings.driveCapacityTB || "";
+
 renderApp();
 
-sampleMovieSelect.addEventListener("change", function () {
-  const selectedTitle = sampleMovieSelect.value;
-  const selectedMovie = sampleMovies.find(function (movie) {
-    return movie.title === selectedTitle;
-  });
-
-  if (!selectedMovie) {
-    return;
-  }
-
-  movieTitleInput.value = selectedMovie.title;
-  movieYearInput.value = selectedMovie.year;
-  movieGenreInput.value = selectedMovie.genre;
-  movieRuntimeInput.value = selectedMovie.runtime;
-  movieSizeInput.value = selectedMovie.suggestedSize;
+chooseFolderButton.addEventListener("click", function () {
+  folderInput.click();
 });
 
-movieForm.addEventListener("submit", function (event) {
-  event.preventDefault();
+folderInput.addEventListener("change", function () {
+  const files = Array.from(folderInput.files);
 
-  const title = movieTitleInput.value.trim();
-  const year = Number(movieYearInput.value) || "";
-  const genre = movieGenreInput.value.trim() || "Uncategorized";
-  const runtime = movieRuntimeInput.value.trim() || "Not set";
-  const quality = movieQualitySelect.value;
-  const fileSize = Number(movieSizeInput.value);
-  const drive = movieDriveSelect.value;
-  const status = movieStatusSelect.value;
-  const favorite = movieFavoriteInput.checked;
-  const notes = movieNotesInput.value.trim();
-
-  if (!title) {
-    formMessage.textContent = "Please add a movie title.";
+  if (files.length === 0) {
+    showToast("No folder selected.");
     return;
   }
 
-  if (!fileSize || fileSize <= 0) {
-    formMessage.textContent = "Please add a file size greater than 0.";
+  scanFiles(files);
+  folderInput.value = "";
+});
+
+clearLibraryButton.addEventListener("click", function () {
+  const confirmClear = confirm("Clear the saved scan? This only clears the browser dashboard. It does not delete any files.");
+
+  if (!confirmClear) {
     return;
   }
 
-  const movie = {
-    id: Date.now().toString(),
-    title,
-    year,
-    genre,
-    runtime,
-    quality,
-    fileSize,
-    drive,
-    status,
-    favorite,
-    notes,
-    addedAt: new Date().toISOString()
-  };
+  scannedMovies = [];
+  settings.lastScan = "";
+  saveScannedMovies();
+  saveSettings();
 
-  movies.unshift(movie);
-  saveMovies();
-
-  addActivity(`Added ${movie.title}`, `${movie.quality} • ${movie.drive}`);
-
-  movieForm.reset();
-  movieQualitySelect.value = "4K";
-  movieDriveSelect.value = "NAS Drive 1";
-  movieStatusSelect.value = "Not Watched";
-
-  formMessage.textContent = "Movie added to your cinema library.";
-  showToast(`${movie.title} added to library`);
-
-  populateFilterOptions();
   renderApp();
+  showToast("Saved scan cleared.");
 });
+
+driveLabelInput.addEventListener("input", saveCurrentSettings);
+driveCapacityInput.addEventListener("input", saveCurrentSettings);
 
 globalSearchInput.addEventListener("input", renderMovies);
-driveFilter.addEventListener("change", renderMovies);
 qualityFilter.addEventListener("change", renderMovies);
+extensionFilter.addEventListener("change", renderMovies);
 statusFilter.addEventListener("change", renderMovies);
 sortFilter.addEventListener("change", renderMovies);
 
 clearFiltersButton.addEventListener("click", function () {
   globalSearchInput.value = "";
-  driveFilter.value = "All";
   qualityFilter.value = "All";
+  extensionFilter.value = "All";
   statusFilter.value = "All";
-  sortFilter.value = "Newest";
+  sortFilter.value = "Largest";
   renderMovies();
 });
 
-resetDemoButton.addEventListener("click", function () {
-  const confirmReset = confirm("Reset the demo library? This will replace your current saved movies.");
-
-  if (!confirmReset) {
-    return;
-  }
-
-  movies = starterMovies.map(function (movie) {
-    return {
-      ...movie,
-      id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + Math.random().toString()
-    };
-  });
-
-  activity = [
-    createActivity("Demo library restored", "Starter cinema collection loaded")
-  ];
-
-  saveMovies();
-  saveActivity();
-  populateFilterOptions();
-  renderApp();
-  showToast("Demo library restored");
-});
+exportButton.addEventListener("click", exportCSV);
 
 movieGrid.addEventListener("click", function (event) {
   const button = event.target.closest("button");
@@ -261,11 +108,7 @@ movieGrid.addEventListener("click", function (event) {
   const movieId = button.dataset.id;
   const action = button.dataset.action;
 
-  if (!movieId || !action) {
-    return;
-  }
-
-  const movie = movies.find(function (item) {
+  const movie = scannedMovies.find(function (item) {
     return item.id === movieId;
   });
 
@@ -279,34 +122,16 @@ movieGrid.addEventListener("click", function (event) {
 
   if (action === "favorite") {
     movie.favorite = !movie.favorite;
-    saveMovies();
-    addActivity(movie.favorite ? `Favorited ${movie.title}` : `Removed favorite from ${movie.title}`, movie.quality);
+    saveScannedMovies();
     renderApp();
+    showToast(movie.favorite ? "Marked as favorite." : "Removed favorite.");
   }
 
   if (action === "watched") {
-    movie.status = "Watched";
-    saveMovies();
-    addActivity(`Marked ${movie.title} as watched`, movie.drive);
+    movie.status = movie.status === "Watched" ? "Not Watched" : "Watched";
+    saveScannedMovies();
     renderApp();
-  }
-
-  if (action === "remove") {
-    const confirmRemove = confirm(`Remove ${movie.title} from your library?`);
-
-    if (!confirmRemove) {
-      return;
-    }
-
-    movies = movies.filter(function (item) {
-      return item.id !== movieId;
-    });
-
-    saveMovies();
-    addActivity(`Removed ${movie.title}`, "Deleted from library");
-    populateFilterOptions();
-    renderApp();
-    showToast(`${movie.title} removed`);
+    showToast(`Status updated: ${movie.status}`);
   }
 });
 
@@ -318,101 +143,226 @@ detailModal.addEventListener("click", function (event) {
   }
 });
 
-function createMovie(title, year, genre, runtime, quality, fileSize, drive, status, favorite) {
-  return {
-    id: Date.now().toString() + Math.random().toString(),
-    title,
-    year,
-    genre,
-    runtime,
-    quality,
-    fileSize,
-    drive,
-    status,
-    favorite,
-    notes: "",
-    addedAt: new Date().toISOString()
-  };
-}
+function scanFiles(files) {
+  const driveLabel = driveLabelInput.value.trim() || getDefaultDriveLabel(files);
+  const existingByPath = new Map();
 
-function loadMovies() {
-  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-
-  if (!saved || saved.length === 0) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(starterMovies));
-    return starterMovies;
-  }
-
-  return saved;
-}
-
-function saveMovies() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(movies));
-}
-
-function loadActivity() {
-  const saved = JSON.parse(localStorage.getItem(ACTIVITY_KEY));
-
-  if (!saved || saved.length === 0) {
-    const startingActivity = [
-      createActivity("Cinema Library opened", "Ready to manage movie storage"),
-      createActivity("Starter movies loaded", "Demo collection available")
-    ];
-
-    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(startingActivity));
-    return startingActivity;
-  }
-
-  return saved;
-}
-
-function createActivity(message, detail) {
-  return {
-    id: Date.now().toString() + Math.random().toString(),
-    message,
-    detail,
-    time: new Date().toLocaleString([], {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    })
-  };
-}
-
-function addActivity(message, detail) {
-  activity.unshift(createActivity(message, detail));
-  activity = activity.slice(0, 6);
-  saveActivity();
-}
-
-function saveActivity() {
-  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activity));
-}
-
-function populateSampleMovies() {
-  sampleMovies.forEach(function (movie) {
-    const option = document.createElement("option");
-    option.value = movie.title;
-    option.textContent = `${movie.title} (${movie.year})`;
-    sampleMovieSelect.appendChild(option);
+  scannedMovies.forEach(function (movie) {
+    existingByPath.set(movie.relativePath, movie);
   });
+
+  const movieFiles = files
+    .filter(isSupportedMovieFile)
+    .map(function (file) {
+      const relativePath = file.webkitRelativePath || file.name;
+      const previousMovie = existingByPath.get(relativePath);
+
+      const fileName = file.name;
+      const extension = getFileExtension(fileName);
+      const quality = guessQuality(fileName);
+      const year = guessYear(fileName);
+      const title = cleanMovieTitle(fileName);
+
+      return {
+        id: previousMovie ? previousMovie.id : createId(relativePath, file.size),
+        title,
+        fileName,
+        extension,
+        quality,
+        year,
+        fileSizeBytes: file.size,
+        fileSizeGB: bytesToGB(file.size),
+        relativePath,
+        folderName: getTopFolder(relativePath),
+        driveLabel,
+        lastModified: file.lastModified,
+        lastModifiedText: new Date(file.lastModified).toLocaleDateString(),
+        status: previousMovie ? previousMovie.status : "Not Watched",
+        favorite: previousMovie ? previousMovie.favorite : false,
+        notes: previousMovie ? previousMovie.notes : "",
+        scannedAt: new Date().toISOString()
+      };
+    });
+
+  scannedMovies = movieFiles;
+
+  settings.driveLabel = driveLabel;
+  settings.driveCapacityTB = driveCapacityInput.value;
+  settings.lastScan = new Date().toISOString();
+
+  driveLabelInput.value = driveLabel;
+
+  saveScannedMovies();
+  saveSettings();
+  populateFilters();
+  renderApp();
+
+  if (movieFiles.length === 0) {
+    showToast("No supported movie files found.");
+  } else {
+    showToast(`${movieFiles.length} real movie files scanned.`);
+  }
 }
 
-function populateFilterOptions() {
-  populateSelect(driveFilter, ["All", ...Object.keys(driveCapacities)]);
-  populateSelect(qualityFilter, ["All", "720p", "1080p", "4K", "8K"]);
-  populateSelect(statusFilter, ["All", "Not Watched", "Watching", "Watched"]);
+function isSupportedMovieFile(file) {
+  const extension = getFileExtension(file.name);
+  return supportedExtensions.includes(extension);
+}
+
+function getFileExtension(fileName) {
+  const parts = fileName.toLowerCase().split(".");
+  return parts.length > 1 ? parts.pop() : "";
+}
+
+function guessQuality(fileName) {
+  const name = fileName.toLowerCase();
+
+  if (name.includes("4320p") || name.includes("8k")) {
+    return "8K";
+  }
+
+  if (name.includes("2160p") || name.includes("4k") || name.includes("uhd")) {
+    return "4K";
+  }
+
+  if (name.includes("1080p") || name.includes("fhd")) {
+    return "1080p";
+  }
+
+  if (name.includes("720p")) {
+    return "720p";
+  }
+
+  if (name.includes("480p")) {
+    return "480p";
+  }
+
+  return "Unknown";
+}
+
+function guessYear(fileName) {
+  const match = fileName.match(/\b(19[0-9]{2}|20[0-9]{2})\b/);
+  return match ? match[0] : "";
+}
+
+function cleanMovieTitle(fileName) {
+  let title = fileName.replace(/\.[^/.]+$/, "");
+
+  title = title.replace(/\[[^\]]*\]/g, " ");
+  title = title.replace(/\([^\)]*\)/g, " ");
+  title = title.replace(/[._-]/g, " ");
+
+  const removeWords = [
+    "4320p", "2160p", "1080p", "720p", "480p", "8k", "4k", "uhd",
+    "bluray", "blu ray", "brrip", "webrip", "web dl", "web",
+    "x264", "x265", "h264", "h265", "hevc", "aac", "dts", "truehd",
+    "atmos", "hdr", "dv", "remux", "extended", "proper", "repack"
+  ];
+
+  removeWords.forEach(function (word) {
+    const regex = new RegExp(`\\b${word}\\b`, "gi");
+    title = title.replace(regex, " ");
+  });
+
+  title = title.replace(/\b(19[0-9]{2}|20[0-9]{2})\b/g, " ");
+  title = title.replace(/\s+/g, " ").trim();
+
+  if (!title) {
+    return fileName.replace(/\.[^/.]+$/, "");
+  }
+
+  return title
+    .split(" ")
+    .map(function (word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+}
+
+function getDefaultDriveLabel(files) {
+  const firstFile = files[0];
+
+  if (!firstFile || !firstFile.webkitRelativePath) {
+    return "Selected Movie Folder";
+  }
+
+  return firstFile.webkitRelativePath.split("/")[0] || "Selected Movie Folder";
+}
+
+function getTopFolder(path) {
+  return path.includes("/") ? path.split("/")[0] : "Selected Folder";
+}
+
+function bytesToGB(bytes) {
+  return bytes / (1024 * 1024 * 1024);
+}
+
+function formatStorage(gb) {
+  if (gb >= 1024) {
+    return `${(gb / 1024).toFixed(2)} TB`;
+  }
+
+  if (gb < 1) {
+    return `${Math.max(gb * 1024, 0).toFixed(0)} MB`;
+  }
+
+  return `${gb.toFixed(2)} GB`;
+}
+
+function createId(path, size) {
+  return `${path}-${size}`.replace(/[^a-zA-Z0-9]/g, "");
+}
+
+function loadScannedMovies() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+}
+
+function saveScannedMovies() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(scannedMovies));
+}
+
+function loadSettings() {
+  return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {
+    driveLabel: "",
+    driveCapacityTB: "",
+    lastScan: ""
+  };
+}
+
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function saveCurrentSettings() {
+  settings.driveLabel = driveLabelInput.value.trim();
+  settings.driveCapacityTB = driveCapacityInput.value;
+  saveSettings();
+  renderStats();
+  renderDriveState();
+}
+
+function renderApp() {
+  populateFilters();
+  renderStats();
+  renderDriveState();
+  renderMovies();
+  renderScanStatus();
+}
+
+function populateFilters() {
+  populateSelect(qualityFilter, ["All", ...getUniqueValues("quality")]);
+  populateSelect(extensionFilter, ["All", ...getUniqueValues("extension")]);
 }
 
 function populateSelect(selectElement, options) {
   const currentValue = selectElement.value;
+
   selectElement.innerHTML = "";
 
-  options.forEach(function (optionValue) {
+  options.forEach(function (value) {
     const option = document.createElement("option");
-    option.value = optionValue;
-    option.textContent = optionValue;
+    option.value = value;
+    option.textContent = value;
     selectElement.appendChild(option);
   });
 
@@ -421,88 +371,103 @@ function populateSelect(selectElement, options) {
   }
 }
 
-function renderApp() {
-  renderStats();
-  renderStorage();
-  renderMovies();
-  renderActivity();
+function getUniqueValues(key) {
+  const values = new Set();
+
+  scannedMovies.forEach(function (movie) {
+    if (movie[key]) {
+      values.add(movie[key]);
+    }
+  });
+
+  return Array.from(values).sort();
 }
 
 function renderStats() {
-  const totalMovies = movies.length;
-  const totalStorage = getTotalStorageUsed();
-  const totalCapacity = getTotalCapacity();
-  const percentUsed = totalCapacity > 0 ? Math.min((totalStorage / totalCapacity) * 100, 100) : 0;
-  const highQuality = movies.filter(function (movie) {
+  const totalMovies = scannedMovies.length;
+  const totalSize = getTotalSize();
+  const highQuality = scannedMovies.filter(function (movie) {
     return movie.quality === "4K" || movie.quality === "8K";
-  }).length;
-  const watched = movies.filter(function (movie) {
-    return movie.status === "Watched";
   }).length;
 
   totalMoviesStat.textContent = totalMovies;
-  totalStorageStat.textContent = formatStorage(totalStorage);
+  totalStorageStat.textContent = formatStorage(totalSize);
   highQualityStat.textContent = highQuality;
-  watchedStat.textContent = watched;
+  lastScanStat.textContent = settings.lastScan ? formatShortDate(settings.lastScan) : "Never";
 
-  sidebarStorageUsed.textContent = formatStorage(totalStorage);
-  sidebarStorageBar.style.width = `${percentUsed}%`;
-  sidebarStoragePercent.textContent = `${percentUsed.toFixed(1)}% of total capacity`;
+  sidebarStorageUsed.textContent = formatStorage(totalSize);
+
+  const capacityTB = Number(driveCapacityInput.value) || 0;
+  const capacityGB = capacityTB * 1024;
+
+  if (capacityGB > 0) {
+    const percentUsed = Math.min((totalSize / capacityGB) * 100, 100);
+    sidebarStorageBar.style.width = `${percentUsed}%`;
+    sidebarStoragePercent.textContent = `${percentUsed.toFixed(1)}% of ${capacityTB} TB capacity`;
+  } else {
+    sidebarStorageBar.style.width = "0%";
+    sidebarStoragePercent.textContent = "Add drive capacity to show percentage.";
+  }
 }
 
-function renderStorage() {
-  storageGrid.innerHTML = "";
+function renderDriveState() {
+  const totalSize = getTotalSize();
+  const capacityTB = Number(driveCapacityInput.value) || 0;
+  const capacityGB = capacityTB * 1024;
+  const percentUsed = capacityGB > 0 ? Math.min((totalSize / capacityGB) * 100, 100) : 0;
+  const freeSpace = capacityGB > 0 ? Math.max(capacityGB - totalSize, 0) : 0;
+  const driveLabel = driveLabelInput.value.trim() || settings.driveLabel || "No drive label yet";
 
-  Object.entries(driveCapacities).forEach(function ([driveName, capacity]) {
-    const used = getDriveUsed(driveName);
-    const percent = Math.min((used / capacity) * 100, 100);
-    const movieCount = movies.filter(function (movie) {
-      return movie.drive === driveName;
-    }).length;
+  driveStateGrid.innerHTML = "";
 
-    const card = document.createElement("article");
-    card.className = "drive-card";
+  const card = document.createElement("article");
+  card.className = "drive-card";
 
-    card.innerHTML = `
-      <div class="drive-top">
-        <div>
-          <h3>${escapeHTML(driveName)}</h3>
-          <span>${movieCount} movies stored</span>
-        </div>
-        <span>${percent.toFixed(1)}%</span>
+  card.innerHTML = `
+    <div class="drive-top">
+      <div>
+        <h3>${escapeHTML(driveLabel)}</h3>
+        <span>${scannedMovies.length} movie files scanned</span>
       </div>
+      <span>${capacityGB > 0 ? percentUsed.toFixed(1) + "%" : "Capacity optional"}</span>
+    </div>
 
-      <strong>${formatStorage(used)} / ${formatStorage(capacity)}</strong>
+    <strong>
+      ${formatStorage(totalSize)}
+      ${capacityGB > 0 ? " / " + formatStorage(capacityGB) : " scanned"}
+    </strong>
 
-      <div class="progress-bar">
-        <span style="width: ${percent}%"></span>
-      </div>
+    <div class="progress-bar">
+      <span style="width: ${percentUsed}%"></span>
+    </div>
 
-      <small>${formatStorage(capacity - used)} free</small>
-    `;
+    <small>
+      ${capacityGB > 0 ? formatStorage(freeSpace) + " estimated free after scanned files" : "Enter capacity to show estimated usage percentage."}
+    </small>
+  `;
 
-    storageGrid.appendChild(card);
-  });
+  driveStateGrid.appendChild(card);
 }
 
 function renderMovies() {
   const searchTerm = globalSearchInput.value.trim().toLowerCase();
-  const selectedDrive = driveFilter.value;
   const selectedQuality = qualityFilter.value;
+  const selectedExtension = extensionFilter.value;
   const selectedStatus = statusFilter.value;
   const selectedSort = sortFilter.value;
 
-  let filteredMovies = movies.filter(function (movie) {
+  let filteredMovies = scannedMovies.filter(function (movie) {
     const matchesSearch =
       movie.title.toLowerCase().includes(searchTerm) ||
-      movie.genre.toLowerCase().includes(searchTerm) ||
-      movie.drive.toLowerCase().includes(searchTerm);
+      movie.fileName.toLowerCase().includes(searchTerm) ||
+      movie.relativePath.toLowerCase().includes(searchTerm) ||
+      movie.driveLabel.toLowerCase().includes(searchTerm);
 
-    const matchesDrive = selectedDrive === "All" || movie.drive === selectedDrive;
     const matchesQuality = selectedQuality === "All" || movie.quality === selectedQuality;
+    const matchesExtension = selectedExtension === "All" || movie.extension === selectedExtension;
     const matchesStatus = selectedStatus === "All" || movie.status === selectedStatus;
 
-    return matchesSearch && matchesDrive && matchesQuality && matchesStatus;
+    return matchesSearch && matchesQuality && matchesExtension && matchesStatus;
   });
 
   if (selectedSort === "Title") {
@@ -511,20 +476,35 @@ function renderMovies() {
     });
   }
 
-  if (selectedSort === "Size") {
+  if (selectedSort === "Largest") {
     filteredMovies.sort(function (a, b) {
-      return b.fileSize - a.fileSize;
+      return b.fileSizeGB - a.fileSizeGB;
     });
   }
 
   if (selectedSort === "Newest") {
     filteredMovies.sort(function (a, b) {
-      return new Date(b.addedAt) - new Date(a.addedAt);
+      return b.lastModified - a.lastModified;
+    });
+  }
+
+  if (selectedSort === "Quality") {
+    const qualityRank = {
+      "8K": 5,
+      "4K": 4,
+      "1080p": 3,
+      "720p": 2,
+      "480p": 1,
+      "Unknown": 0
+    };
+
+    filteredMovies.sort(function (a, b) {
+      return (qualityRank[b.quality] || 0) - (qualityRank[a.quality] || 0);
     });
   }
 
   movieGrid.innerHTML = "";
-  resultCount.textContent = `${filteredMovies.length} movies showing`;
+  resultCount.textContent = `${filteredMovies.length} files showing`;
 
   if (filteredMovies.length === 0) {
     emptyState.classList.remove("hidden");
@@ -547,6 +527,7 @@ function renderMovies() {
 
       <div class="movie-body">
         <span class="status-badge status-${statusClass}">${escapeHTML(movie.status)}</span>
+        <span class="extension-badge">.${escapeHTML(movie.extension)}</span>
 
         <h3>
           ${escapeHTML(movie.title)}
@@ -554,27 +535,25 @@ function renderMovies() {
         </h3>
 
         <p class="movie-meta">
-          ${movie.year || "Year not set"} • ${escapeHTML(movie.runtime)}<br />
-          ${escapeHTML(movie.genre)}
+          ${movie.year || "Year unknown"} • Last modified ${escapeHTML(movie.lastModifiedText)}
         </p>
 
         <div class="movie-details">
           <div class="movie-detail-row">
-            <span>Storage</span>
-            <strong>${escapeHTML(movie.drive)}</strong>
+            <span>File Size</span>
+            <strong>${formatStorage(movie.fileSizeGB)}</strong>
           </div>
 
           <div class="movie-detail-row">
-            <span>File Size</span>
-            <strong>${formatStorage(movie.fileSize)}</strong>
+            <span>Drive</span>
+            <strong>${escapeHTML(movie.driveLabel)}</strong>
           </div>
         </div>
 
         <div class="movie-actions">
           <button class="movie-action" data-action="details" data-id="${movie.id}" type="button">Details</button>
           <button class="movie-action" data-action="favorite" data-id="${movie.id}" type="button">${movie.favorite ? "Unfavorite" : "Favorite"}</button>
-          <button class="movie-action" data-action="watched" data-id="${movie.id}" type="button">Watched</button>
-          <button class="danger-action" data-action="remove" data-id="${movie.id}" type="button">Remove</button>
+          <button class="movie-action" data-action="watched" data-id="${movie.id}" type="button">${movie.status === "Watched" ? "Unwatch" : "Watched"}</button>
         </div>
       </div>
     `;
@@ -583,28 +562,16 @@ function renderMovies() {
   });
 }
 
-function renderActivity() {
-  activityList.innerHTML = "";
-
-  if (activity.length === 0) {
-    activityList.innerHTML = `<p class="section-note">No activity yet.</p>`;
+function renderScanStatus() {
+  if (scannedMovies.length === 0) {
+    scanStatus.textContent = "No folder scanned yet. Choose a folder to begin.";
     return;
   }
 
-  activity.forEach(function (item) {
-    const row = document.createElement("div");
-    row.className = "activity-item";
-
-    row.innerHTML = `
-      <div>
-        <strong>${escapeHTML(item.message)}</strong>
-        <p>${escapeHTML(item.detail)}</p>
-      </div>
-      <span>${escapeHTML(item.time)}</span>
-    `;
-
-    activityList.appendChild(row);
-  });
+  scanStatus.textContent =
+    `${scannedMovies.length} real movie files loaded from your last scan. ` +
+    `Total scanned size: ${formatStorage(getTotalSize())}. ` +
+    `Last scan: ${settings.lastScan ? new Date(settings.lastScan).toLocaleString() : "Unknown"}.`;
 }
 
 function openDetails(movie) {
@@ -618,25 +585,60 @@ function openDetails(movie) {
         <h2>${escapeHTML(movie.title)}</h2>
 
         <p>
-          ${movie.year || "Year not set"} • ${escapeHTML(movie.runtime)} • ${escapeHTML(movie.genre)}
+          This record is based on a real file selected from your folder scan.
         </p>
 
         <div class="modal-list">
-          <div><span>Quality</span><strong>${escapeHTML(movie.quality)}</strong></div>
-          <div><span>File Size</span><strong>${formatStorage(movie.fileSize)}</strong></div>
-          <div><span>Storage Drive</span><strong>${escapeHTML(movie.drive)}</strong></div>
-          <div><span>Watch Status</span><strong>${escapeHTML(movie.status)}</strong></div>
-          <div><span>Favorite</span><strong>${movie.favorite ? "Yes" : "No"}</strong></div>
-          <div><span>Added</span><strong>${new Date(movie.addedAt).toLocaleDateString()}</strong></div>
+          <div><span>File Name</span><strong>${escapeHTML(movie.fileName)}</strong></div>
+          <div><span>Title Guess</span><strong>${escapeHTML(movie.title)}</strong></div>
+          <div><span>Year Guess</span><strong>${movie.year || "Unknown"}</strong></div>
+          <div><span>Quality Guess</span><strong>${escapeHTML(movie.quality)}</strong></div>
+          <div><span>File Type</span><strong>.${escapeHTML(movie.extension)}</strong></div>
+          <div><span>File Size</span><strong>${formatStorage(movie.fileSizeGB)}</strong></div>
+          <div><span>Drive Label</span><strong>${escapeHTML(movie.driveLabel)}</strong></div>
+          <div><span>Folder</span><strong>${escapeHTML(movie.folderName)}</strong></div>
+          <div><span>Relative Path</span><strong>${escapeHTML(movie.relativePath)}</strong></div>
+          <div><span>Last Modified</span><strong>${escapeHTML(movie.lastModifiedText)}</strong></div>
         </div>
 
-        <p>
-          <strong>Notes:</strong><br />
-          ${movie.notes ? escapeHTML(movie.notes) : "No notes added."}
-        </p>
+        <form class="modal-form" data-id="${movie.id}">
+          <label for="modalStatusSelect">Watch Status</label>
+          <select id="modalStatusSelect">
+            <option value="Not Watched" ${movie.status === "Not Watched" ? "selected" : ""}>Not Watched</option>
+            <option value="Watching" ${movie.status === "Watching" ? "selected" : ""}>Watching</option>
+            <option value="Watched" ${movie.status === "Watched" ? "selected" : ""}>Watched</option>
+          </select>
+
+          <label for="modalNotesInput">Notes</label>
+          <textarea id="modalNotesInput" placeholder="Example: Remastered version, best copy, replace later, etc.">${escapeHTML(movie.notes || "")}</textarea>
+
+          <button class="primary-button" type="submit">Save Details</button>
+        </form>
       </div>
     </div>
   `;
+
+  const modalForm = modalContent.querySelector(".modal-form");
+
+  modalForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const targetMovie = scannedMovies.find(function (item) {
+      return item.id === movie.id;
+    });
+
+    if (!targetMovie) {
+      return;
+    }
+
+    targetMovie.status = document.getElementById("modalStatusSelect").value;
+    targetMovie.notes = document.getElementById("modalNotesInput").value.trim();
+
+    saveScannedMovies();
+    closeModal();
+    renderApp();
+    showToast("Movie details saved.");
+  });
 
   detailModal.classList.remove("hidden");
 }
@@ -645,34 +647,80 @@ function closeModal() {
   detailModal.classList.add("hidden");
 }
 
-function getDriveUsed(driveName) {
-  return movies
-    .filter(function (movie) {
-      return movie.drive === driveName;
-    })
-    .reduce(function (total, movie) {
-      return total + Number(movie.fileSize);
-    }, 0);
-}
-
-function getTotalStorageUsed() {
-  return movies.reduce(function (total, movie) {
-    return total + Number(movie.fileSize);
+function getTotalSize() {
+  return scannedMovies.reduce(function (total, movie) {
+    return total + Number(movie.fileSizeGB);
   }, 0);
 }
 
-function getTotalCapacity() {
-  return Object.values(driveCapacities).reduce(function (total, capacity) {
-    return total + capacity;
-  }, 0);
+function formatShortDate(dateString) {
+  return new Date(dateString).toLocaleDateString([], {
+    month: "short",
+    day: "numeric"
+  });
 }
 
-function formatStorage(gb) {
-  if (gb >= 1024) {
-    return `${(gb / 1024).toFixed(2)} TB`;
+function exportCSV() {
+  if (scannedMovies.length === 0) {
+    showToast("No scanned movies to export.");
+    return;
   }
 
-  return `${Math.round(gb)} GB`;
+  const headers = [
+    "Title",
+    "File Name",
+    "Extension",
+    "Quality",
+    "Year",
+    "File Size GB",
+    "Drive Label",
+    "Relative Path",
+    "Status",
+    "Favorite",
+    "Last Modified",
+    "Notes"
+  ];
+
+  const rows = scannedMovies.map(function (movie) {
+    return [
+      movie.title,
+      movie.fileName,
+      movie.extension,
+      movie.quality,
+      movie.year,
+      movie.fileSizeGB.toFixed(2),
+      movie.driveLabel,
+      movie.relativePath,
+      movie.status,
+      movie.favorite ? "Yes" : "No",
+      movie.lastModifiedText,
+      movie.notes || ""
+    ];
+  });
+
+  const csvContent = [headers, ...rows]
+    .map(function (row) {
+      return row
+        .map(function (cell) {
+          return `"${String(cell).replaceAll('"', '""')}"`;
+        })
+        .join(",");
+    })
+    .join("\n");
+
+  const blob = new Blob([csvContent], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "cinema-library-scan.csv";
+  link.click();
+
+  URL.revokeObjectURL(url);
+  showToast("CSV exported.");
 }
 
 function showToast(message) {
