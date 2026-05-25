@@ -4,73 +4,279 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Movie Search App | Joel Foster</title>
+  <title>Cinema Library | Joel Foster</title>
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="app">
-    <section class="hero">
-      <div class="top-bar">
+  <main class="app-shell">
+    <aside class="sidebar">
+      <a href="https://jfoster294.github.io/portfolio-site/" class="back-link">← Portfolio</a>
+
+      <div class="brand">
+        <div class="brand-icon">🎬</div>
         <div>
-          <p class="eyebrow">Movie Search App</p>
-          <h1>Find Movies Fast</h1>
-          <p>Search movies, shows, and episodes. View posters, ratings, plots, actors, and release details.</p>
+          <h1>Cinema Library</h1>
+          <p>Personal movie storage dashboard</p>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <a href="#dashboard" class="active">Dashboard</a>
+        <a href="#storage">Storage Drives</a>
+        <a href="#addMovie">Add Movie</a>
+        <a href="#library">Movie Library</a>
+      </nav>
+
+      <div class="sidebar-card">
+        <p>Storage Used</p>
+        <h2 id="sidebarStorageUsed">0 GB</h2>
+        <div class="small-progress">
+          <span id="sidebarStorageBar"></span>
+        </div>
+        <small id="sidebarStoragePercent">0% of total capacity</small>
+      </div>
+
+      <div class="sidebar-tip">
+        <strong>How it works</strong>
+        <p>
+          Add movies, choose a drive, set quality, track watch status,
+          and save your cinema library locally.
+        </p>
+      </div>
+    </aside>
+
+    <section class="main-content">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">Home Cinema Manager</p>
+          <h2>Manage movies across drives.</h2>
         </div>
 
-        <div class="theme-control">
-          <label for="themeSelect">Theme</label>
-          <select id="themeSelect">
-            <option value="cinematic">Cinematic Dark Theater</option>
-            <option value="arcade">Neon Movie Arcade</option>
-            <option value="noir">Classic Film Noir</option>
-            <option value="premiere">Red Carpet Premiere</option>
-            <option value="streaming">Streaming Platform</option>
-            <option value="ticket">Movie Ticket</option>
-            <option value="cyber">Cyber Cinema</option>
+        <div class="top-actions">
+          <input type="text" id="globalSearchInput" placeholder="Search your library..." />
+          <button id="resetDemoButton" type="button">Reset Demo</button>
+        </div>
+      </header>
+
+      <section id="dashboard" class="hero-panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Featured Setup</p>
+          <h1>Build your personal movie server library.</h1>
+          <p>
+            Track what movies you own, where they are stored, what quality they are,
+            how large the files are, and what you have watched.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#addMovie" class="primary-button">Add Movie</a>
+            <a href="#library" class="secondary-button">View Library</a>
+          </div>
+        </div>
+
+        <div class="help-panel">
+          <h3>Quick Guide</h3>
+
+          <div class="guide-step">
+            <span>1</span>
+            <p>Pick a sample movie or type your own.</p>
+          </div>
+
+          <div class="guide-step">
+            <span>2</span>
+            <p>Choose quality, file size, and storage drive.</p>
+          </div>
+
+          <div class="guide-step">
+            <span>3</span>
+            <p>Filter your library by drive, quality, or watch status.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-grid">
+        <article class="stat-card">
+          <p>Total Movies</p>
+          <h2 id="totalMoviesStat">0</h2>
+        </article>
+
+        <article class="stat-card">
+          <p>Total Storage</p>
+          <h2 id="totalStorageStat">0 GB</h2>
+        </article>
+
+        <article class="stat-card">
+          <p>4K / 8K Movies</p>
+          <h2 id="highQualityStat">0</h2>
+        </article>
+
+        <article class="stat-card">
+          <p>Watched</p>
+          <h2 id="watchedStat">0</h2>
+        </article>
+      </section>
+
+      <section id="storage" class="section-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Storage Drive View</p>
+            <h2>Drive Overview</h2>
+          </div>
+
+          <p class="section-note">Usage is calculated from the movies saved in your library.</p>
+        </div>
+
+        <div id="storageGrid" class="storage-grid"></div>
+      </section>
+
+      <section id="addMovie" class="section-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Add Movie</p>
+            <h2>Add a title to your library</h2>
+          </div>
+
+          <p class="section-note">Use the sample dropdown or enter your own movie manually.</p>
+        </div>
+
+        <form id="movieForm" class="movie-form">
+          <div class="form-grid">
+            <div>
+              <label for="sampleMovieSelect">Sample Movie</label>
+              <select id="sampleMovieSelect">
+                <option value="">Choose a sample movie</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="movieTitleInput">Movie Title</label>
+              <input type="text" id="movieTitleInput" placeholder="Example: Interstellar" required />
+            </div>
+
+            <div>
+              <label for="movieYearInput">Year</label>
+              <input type="number" id="movieYearInput" placeholder="2014" min="1900" max="2100" />
+            </div>
+
+            <div>
+              <label for="movieGenreInput">Genre</label>
+              <input type="text" id="movieGenreInput" placeholder="Sci-Fi, Drama, Action" />
+            </div>
+
+            <div>
+              <label for="movieRuntimeInput">Runtime</label>
+              <input type="text" id="movieRuntimeInput" placeholder="2h 49m" />
+            </div>
+
+            <div>
+              <label for="movieQualitySelect">Quality</label>
+              <select id="movieQualitySelect">
+                <option value="720p">720p</option>
+                <option value="1080p">1080p</option>
+                <option value="4K" selected>4K</option>
+                <option value="8K">8K</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="movieSizeInput">File Size GB</label>
+              <input type="number" id="movieSizeInput" placeholder="75" min="1" step="1" required />
+            </div>
+
+            <div>
+              <label for="movieDriveSelect">Storage Drive</label>
+              <select id="movieDriveSelect">
+                <option value="NAS Drive 1">NAS Drive 1</option>
+                <option value="NAS Drive 2">NAS Drive 2</option>
+                <option value="External SSD">External SSD</option>
+                <option value="Archive Drive">Archive Drive</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="movieStatusSelect">Watch Status</label>
+              <select id="movieStatusSelect">
+                <option value="Not Watched">Not Watched</option>
+                <option value="Watching">Watching</option>
+                <option value="Watched">Watched</option>
+              </select>
+            </div>
+
+            <div class="checkbox-row">
+              <input type="checkbox" id="movieFavoriteInput" />
+              <label for="movieFavoriteInput">Mark as favorite</label>
+            </div>
+          </div>
+
+          <textarea id="movieNotesInput" placeholder="Optional notes: Extended cut, remastered version, family favorite, etc."></textarea>
+
+          <button type="submit" class="primary-button full-width">Add Movie to Library</button>
+          <p id="formMessage" class="form-message"></p>
+        </form>
+      </section>
+
+      <section id="library" class="section-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Movie Library</p>
+            <h2>Your Collection</h2>
+          </div>
+
+          <p id="resultCount" class="section-note">0 movies showing</p>
+        </div>
+
+        <div class="filters">
+          <select id="driveFilter">
+            <option value="All">All Drives</option>
           </select>
+
+          <select id="qualityFilter">
+            <option value="All">All Qualities</option>
+          </select>
+
+          <select id="statusFilter">
+            <option value="All">All Statuses</option>
+          </select>
+
+          <select id="sortFilter">
+            <option value="Newest">Sort: Newest Added</option>
+            <option value="Title">Sort: Title A-Z</option>
+            <option value="Size">Sort: Largest File</option>
+          </select>
+
+          <button id="clearFiltersButton" type="button">Clear Filters</button>
         </div>
-      </div>
 
-      <form id="searchForm" class="search-form">
-        <input
-          type="text"
-          id="movieInput"
-          placeholder="Search movie, example: Batman"
-          autocomplete="off"
-        />
+        <div id="movieGrid" class="movie-grid"></div>
 
-        <select id="typeSelect">
-          <option value="">All</option>
-          <option value="movie">Movies</option>
-          <option value="series">Series</option>
-          <option value="episode">Episodes</option>
-        </select>
+        <div id="emptyState" class="empty-state hidden">
+          <h3>No movies found.</h3>
+          <p>Try clearing the filters or add a new movie to your library.</p>
+          <a href="#addMovie" class="primary-button">Add Movie</a>
+        </div>
+      </section>
 
-        <button type="submit">Search</button>
-      </form>
+      <section class="section-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Activity</p>
+            <h2>Recent Changes</h2>
+          </div>
+        </div>
 
-      <p id="message" class="message"></p>
-    </section>
-
-    <section id="resultsSection" class="results-section hidden">
-      <div class="section-heading">
-        <h2>Search Results</h2>
-        <p id="resultCount"></p>
-      </div>
-
-      <div id="moviesGrid" class="movies-grid"></div>
-    </section>
-
-    <section id="detailsSection" class="details-section hidden">
-      <div class="section-heading">
-        <h2>Movie Details</h2>
-        <button id="closeDetailsButton" class="secondary-button">Close</button>
-      </div>
-
-      <article id="movieDetails" class="movie-details"></article>
+        <div id="activityList" class="activity-list"></div>
+      </section>
     </section>
   </main>
+
+  <section id="detailModal" class="modal hidden">
+    <div class="modal-card">
+      <button id="closeModalButton" class="close-button" type="button">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast hidden"></div>
 
   <script src="script.js"></script>
 </body>
