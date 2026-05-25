@@ -14,121 +14,127 @@
       <a href="https://jfoster294.github.io/portfolio-site/" class="back-link">← Portfolio</a>
 
       <div class="brand">
-        <div class="brand-icon">🎬</div>
+        <div class="brand-orb">▶</div>
+
         <div>
           <h1>Cinema Library</h1>
-          <p>Real movie folder scanner</p>
+          <p>Media Core Control</p>
         </div>
       </div>
 
       <nav class="side-nav">
-        <a href="#scanner" class="active">Scan Folder</a>
-        <a href="#stats">Stats</a>
-        <a href="#library">Library</a>
-        <a href="#help">Help</a>
+        <a href="#scanner" class="active">
+          <span>⌕</span>
+          <div>
+            <strong>Scan Folder</strong>
+            <small>Add real files</small>
+          </div>
+        </a>
+
+        <a href="#library">
+          <span>▦</span>
+          <div>
+            <strong>Library</strong>
+            <small>Browse files</small>
+          </div>
+        </a>
+
+        <a href="#storage">
+          <span>▣</span>
+          <div>
+            <strong>Storage</strong>
+            <small>Drive bays</small>
+          </div>
+        </a>
+
+        <a href="#help">
+          <span>?</span>
+          <div>
+            <strong>Help</strong>
+            <small>How it works</small>
+          </div>
+        </a>
       </nav>
 
-      <div class="sidebar-card">
-        <p>Total Scanned</p>
-        <h2 id="sidebarStorageUsed">0 GB</h2>
-        <div class="small-progress">
-          <span id="sidebarStorageBar"></span>
-        </div>
-        <small id="sidebarStoragePercent">Add drive capacity to show percentage.</small>
-      </div>
+      <section class="sidebar-status">
+        <h2>System Status</h2>
 
-      <div class="sidebar-tip">
-        <strong>Real data mode</strong>
-        <p>
-          This app only shows movie files you choose from your own folder.
-          Nothing fake is loaded.
-        </p>
-      </div>
-    </aside>
-
-    <section class="main-content">
-      <header class="top-bar">
-        <div>
-          <p class="eyebrow">Local-First Cinema Storage</p>
-          <h2>Scan your real movie folder.</h2>
+        <div class="system-row">
+          <span>Scan Mode</span>
+          <strong>Real Files</strong>
         </div>
 
-        <div class="top-actions">
-          <input type="text" id="globalSearchInput" placeholder="Search scanned movies..." />
-          <button id="exportButton" type="button">Export CSV</button>
-        </div>
-      </header>
-
-      <section class="hero-panel">
-        <div class="hero-copy">
-          <p class="eyebrow">Home Movie Library</p>
-          <h1>Index real movie files from your device.</h1>
-          <p>
-            Choose a movie folder, label the drive, and Cinema Library will scan
-            your actual files, calculate storage used, infer quality, and save
-            the scanned library locally in your browser.
-          </p>
-
-          <div class="hero-actions">
-            <a href="#scanner" class="primary-button">Scan Movie Folder</a>
-            <a href="#library" class="secondary-button">View Library</a>
-          </div>
+        <div class="system-row">
+          <span>Data Source</span>
+          <strong>Local Folder</strong>
         </div>
 
-        <div class="help-panel">
-          <h3>Simple workflow</h3>
-
-          <div class="guide-step">
-            <span>1</span>
-            <p>Type a drive label like “NAS Drive 1” or “Movie HDD.”</p>
-          </div>
-
-          <div class="guide-step">
-            <span>2</span>
-            <p>Click “Choose Movie Folder” and select your real folder.</p>
-          </div>
-
-          <div class="guide-step">
-            <span>3</span>
-            <p>Review your real files, sizes, quality guesses, and paths.</p>
-          </div>
+        <div class="system-row">
+          <span>Fake Data</span>
+          <strong>Disabled</strong>
         </div>
       </section>
 
-      <section id="scanner" class="section-card scanner-card">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Scanner</p>
-            <h2>Scan a movie folder</h2>
-          </div>
+      <section class="sidebar-card">
+        <p>Total Scanned</p>
+        <h2 id="sidebarStorageUsed">0 GB</h2>
 
-          <p class="section-note">
-            Browser security requires you to choose the folder manually.
-          </p>
+        <div class="mini-meter">
+          <span id="sidebarStorageBar"></span>
         </div>
 
-        <div class="scanner-grid">
-          <div>
-            <label for="driveLabelInput">Drive / Folder Label</label>
+        <small id="sidebarStoragePercent">Add drive capacity to calculate usage.</small>
+      </section>
+    </aside>
+
+    <section class="main-console">
+      <header class="system-bar">
+        <div>
+          <span class="status-dot"></span>
+          <strong id="scanStatusText">WAITING FOR SCAN</strong>
+        </div>
+
+        <div>
+          <strong id="integrityText">0 FILES INDEXED</strong>
+        </div>
+
+        <div>
+          <span class="status-dot blue"></span>
+          <strong>LOCAL MODE</strong>
+        </div>
+
+        <div>
+          <strong id="clockText">--:--</strong>
+        </div>
+      </header>
+
+      <section class="dashboard-grid">
+        <section id="scanner" class="panel scan-panel">
+          <p class="eyebrow">Scanner</p>
+          <h2>Scan a real movie folder</h2>
+
+          <p class="panel-copy">
+            Choose a folder from your device. Cinema Library will only display
+            real video files you selected. No fake starter movies are loaded.
+          </p>
+
+          <div class="scanner-form">
+            <label for="driveLabelInput">Drive / Bay Label</label>
             <input
               type="text"
               id="driveLabelInput"
-              placeholder="Example: NAS Drive 1, Movie HDD, External SSD"
+              placeholder="Example: Bay 1 Movie HDD"
             />
-          </div>
 
-          <div>
             <label for="driveCapacityInput">Drive Capacity in TB Optional</label>
             <input
               type="number"
               id="driveCapacityInput"
               min="0"
               step="0.1"
-              placeholder="Example: 8"
+              placeholder="Example: 26"
             />
-          </div>
 
-          <div class="scanner-buttons">
             <input
               type="file"
               id="folderInput"
@@ -142,126 +148,209 @@
               Choose Movie Folder
             </button>
 
-            <button id="clearLibraryButton" class="danger-button" type="button">
-              Clear Saved Scan
+            <button id="clearAllButton" class="danger-button" type="button">
+              Clear All Saved Scans
             </button>
           </div>
-        </div>
 
-        <div id="scanStatus" class="scan-status">
-          No folder scanned yet. Choose a folder to begin.
-        </div>
+          <div id="scanMessage" class="scan-message">
+            No folder scanned yet. Add a drive label, then choose a movie folder.
+          </div>
+        </section>
+
+        <section class="panel core-panel">
+          <div id="mediaCoreRing" class="core-meter">
+            <div>
+              <p>Media Core</p>
+              <h2 id="corePercent">0%</h2>
+              <span id="coreStorageText">0 GB scanned</span>
+            </div>
+          </div>
+
+          <div class="core-caption">
+            <strong id="coreStatusLine">Ready to scan your first folder.</strong>
+            <span id="coreSubLine">Capacity is optional but helps calculate usage.</span>
+          </div>
+        </section>
+
+        <section class="panel viewport-panel">
+          <div class="space-window">
+            <div class="planet"></div>
+            <div class="stars"></div>
+          </div>
+
+          <div class="node-card">
+            <p>Cinema Library Node</p>
+            <strong id="nodeDriveName">No drive scanned</strong>
+            <span id="nodeDriveDetail">Choose a folder to begin</span>
+          </div>
+        </section>
+
+        <article class="quick-stat">
+          <span>▦</span>
+          <div>
+            <p>Total Movie Files</p>
+            <h3 id="totalMoviesStat">0</h3>
+          </div>
+        </article>
+
+        <article class="quick-stat">
+          <span>▣</span>
+          <div>
+            <p>Total Size Scanned</p>
+            <h3 id="totalStorageStat">0 GB</h3>
+          </div>
+        </article>
+
+        <article class="quick-stat">
+          <span>4K</span>
+          <div>
+            <p>4K / 8K Files</p>
+            <h3 id="highQualityStat">0</h3>
+          </div>
+        </article>
+
+        <article class="quick-stat">
+          <span>↻</span>
+          <div>
+            <p>Last Scan</p>
+            <h3 id="lastScanStat">Never</h3>
+          </div>
+        </article>
       </section>
 
-      <section id="stats" class="stats-grid">
-        <article class="stat-card">
-          <p>Movie Files</p>
-          <h2 id="totalMoviesStat">0</h2>
-        </article>
-
-        <article class="stat-card">
-          <p>Total Size</p>
-          <h2 id="totalStorageStat">0 GB</h2>
-        </article>
-
-        <article class="stat-card">
-          <p>4K / 8K Files</p>
-          <h2 id="highQualityStat">0</h2>
-        </article>
-
-        <article class="stat-card">
-          <p>Last Scan</p>
-          <h2 id="lastScanStat">Never</h2>
-        </article>
-      </section>
-
-      <section class="section-card">
+      <section id="storage" class="panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Drive State</p>
-            <h2>Current Scanned Source</h2>
+            <p class="eyebrow">Storage Bays</p>
+            <h2>Drive Bay Overview</h2>
           </div>
 
           <p class="section-note">
-            Usage is calculated from the actual movie files selected.
+            Each bay comes from a real folder scan. Re-scan the same label to update that bay.
           </p>
         </div>
 
-        <div id="driveStateGrid" class="storage-grid"></div>
+        <div id="driveGrid" class="drive-grid"></div>
       </section>
 
-      <section id="library" class="section-card">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Movie Library</p>
-            <h2>Scanned Movies</h2>
+      <section class="content-layout">
+        <section id="library" class="panel library-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Library</p>
+              <h2>Scanned Movie Files</h2>
+            </div>
+
+            <p id="resultCount" class="section-note">0 files showing</p>
           </div>
 
-          <p id="resultCount" class="section-note">0 files showing</p>
-        </div>
+          <div class="library-toolbar">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Search title, file name, drive, or path..."
+            />
 
-        <div class="filters">
-          <select id="qualityFilter">
-            <option value="All">All Qualities</option>
-          </select>
+            <select id="driveFilter">
+              <option value="All">All Drives</option>
+            </select>
 
-          <select id="extensionFilter">
-            <option value="All">All File Types</option>
-          </select>
+            <select id="qualityFilter">
+              <option value="All">All Qualities</option>
+            </select>
 
-          <select id="statusFilter">
-            <option value="All">All Statuses</option>
-            <option value="Not Watched">Not Watched</option>
-            <option value="Watching">Watching</option>
-            <option value="Watched">Watched</option>
-          </select>
+            <select id="extensionFilter">
+              <option value="All">All File Types</option>
+            </select>
 
-          <select id="sortFilter">
-            <option value="Largest">Sort: Largest File</option>
-            <option value="Title">Sort: Title A-Z</option>
-            <option value="Newest">Sort: Newest Modified</option>
-            <option value="Quality">Sort: Quality</option>
-          </select>
+            <select id="statusFilter">
+              <option value="All">All Statuses</option>
+              <option value="Not Watched">Not Watched</option>
+              <option value="Watching">Watching</option>
+              <option value="Watched">Watched</option>
+            </select>
 
-          <button id="clearFiltersButton" type="button">Clear Filters</button>
-        </div>
+            <select id="sortFilter">
+              <option value="Largest">Sort: Largest File</option>
+              <option value="Title">Sort: Title A-Z</option>
+              <option value="Newest">Sort: Newest Modified</option>
+              <option value="Quality">Sort: Highest Quality</option>
+            </select>
 
-        <div id="movieGrid" class="movie-grid"></div>
+            <button id="clearFiltersButton" type="button">Clear</button>
+            <button id="exportButton" type="button">Export CSV</button>
+          </div>
 
-        <div id="emptyState" class="empty-state hidden">
-          <h3>No real movie files found.</h3>
-          <p>
-            Scan a folder that contains movie files like MP4, MKV, MOV, AVI,
-            M4V, WEBM, or WMV.
-          </p>
-          <a href="#scanner" class="primary-button">Scan Folder</a>
-        </div>
+          <div id="movieGrid" class="movie-grid"></div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <h3>No real movie files found.</h3>
+            <p>
+              Scan a folder with movie files like MP4, MKV, MOV, AVI, M4V, WEBM, or WMV.
+            </p>
+            <a href="#scanner" class="primary-button">Scan Folder</a>
+          </div>
+        </section>
+
+        <aside class="insight-column">
+          <section class="panel insight-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Breakdown</p>
+                <h2>Quality Mix</h2>
+              </div>
+            </div>
+
+            <div id="qualityBreakdown" class="breakdown-list"></div>
+          </section>
+
+          <section class="panel insight-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Largest</p>
+                <h2>Biggest Files</h2>
+              </div>
+            </div>
+
+            <div id="largestFilesList" class="largest-list"></div>
+          </section>
+
+          <section class="panel insight-panel">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Activity</p>
+                <h2>Recent Scans</h2>
+              </div>
+            </div>
+
+            <div id="activityList" class="activity-list"></div>
+          </section>
+        </aside>
       </section>
 
-      <section id="help" class="section-card">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Help</p>
-            <h2>What this app can and cannot do</h2>
-          </div>
+      <section id="help" class="panel help-section">
+        <div>
+          <p class="eyebrow">Help</p>
+          <h2>Simple rules</h2>
         </div>
 
         <div class="help-grid">
           <article>
             <h3>What it can do</h3>
             <p>
-              It can scan the folder you choose, read real file names, calculate
-              real file sizes, show real paths, infer quality from filenames,
-              and save the scanned metadata locally.
+              It can read the folder you choose, list real video files, calculate
+              real sizes, show real relative paths, infer quality from filenames,
+              track status, and export the scan as CSV.
             </p>
           </article>
 
           <article>
             <h3>What it cannot do</h3>
             <p>
-              A browser website cannot automatically scan every drive on your
-              computer without permission. You must select the folder each time
-              you want to refresh the current state.
+              A GitHub Pages website cannot automatically scan all connected drives
+              without your permission. You must select the folder each time you want
+              to refresh a drive bay.
             </p>
           </article>
         </div>
