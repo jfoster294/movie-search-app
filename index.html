@@ -4,106 +4,252 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Cinema Library</title>
+  <title>Cinema Library | Local Movie Server</title>
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
+  <div class="crt-layer"></div>
+  <div class="page-glow"></div>
 
-    <header class="hero">
-      <nav class="navbar">
-        <div class="brand">
-          <div class="logo-mark">CL</div>
-          <div>
-            <h1>Cinema Library</h1>
-            <p>Your local movie collection, scanned from your own files.</p>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="logo-block">
+        <div class="logo-icon">👾</div>
+
+        <div>
+          <h1>Cinema Library</h1>
+          <p>Local Movie Server</p>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <a href="#home" class="active">Home</a>
+        <a href="#library">Movies</a>
+        <a href="#details">Details</a>
+        <a href="#status">Library Status</a>
+      </nav>
+
+      <div id="status" class="library-status">
+        <p>LIBRARY STATUS</p>
+
+        <strong id="statusMovieCount">0</strong>
+        <span>Movies</span>
+
+        <strong id="statusStorage">0 GB</strong>
+        <span>Storage</span>
+
+        <div class="online-row">
+          <span></span>
+          <p id="serverStatus">No folder scanned</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="brand-title">
+          <h2>CINEMA LIBRARY</h2>
+          <span>YOUR LOCAL MOVIE SERVER</span>
+        </div>
+
+        <div class="top-search">
+          <input id="searchInput" type="text" placeholder="Search movies..." />
+        </div>
+
+        <div class="top-actions">
+          <button id="scanFolderButton" class="primary-button" type="button">
+            Scan Movie Folder
+          </button>
+
+          <button id="clearLibraryButton" class="secondary-button" type="button">
+            Clear
+          </button>
+
+          <button id="exportLibraryButton" class="secondary-button" type="button">
+            Export
+          </button>
+        </div>
+      </header>
+
+      <section id="home" class="hero-panel">
+        <div class="hero-art">
+          <div id="heroPoster" class="hero-poster fallback-poster">
+            <span>LOCAL</span>
+            <strong>SCAN YOUR MOVIE FOLDER</strong>
           </div>
         </div>
 
-        <button id="scanButton" class="primary-button">
-          Scan Movie Folder
-        </button>
-      </nav>
+        <div class="hero-copy">
+          <p class="eyebrow">Local Movie Server</p>
+          <h2 id="heroTitle">Build your local cinema library.</h2>
 
-      <section class="hero-content">
-        <p class="eyebrow">Smart Retro Movie Archive</p>
-        <h2>Turn your hard drive into a clean home cinema library.</h2>
-        <p>
-          Choose a folder from your device and Cinema Library will organize the real movie files it finds.
-          No fake demo data. No online API. Just your actual collection.
-        </p>
+          <p id="heroDescription">
+            Use the Scan Movie Folder button at the top to select a folder from your computer or drive.
+            Cinema Library will detect real movie files, estimate storage, and create retro-styled thumbnails when possible.
+          </p>
+        </div>
       </section>
-    </header>
-
-    <main class="main-content">
 
       <section class="stats-grid">
         <article class="stat-card">
-          <span>Total Movies</span>
+          <span>Movies</span>
           <strong id="movieCount">0</strong>
+          <p>Detected video files</p>
         </article>
 
         <article class="stat-card">
-          <span>Total Size</span>
-          <strong id="totalSize">0 GB</strong>
-        </article>
-
-        <article class="stat-card">
-          <span>4K Files</span>
-          <strong id="fourKCount">0</strong>
-        </article>
-
-        <article class="stat-card">
-          <span>HD Files</span>
-          <strong id="hdCount">0</strong>
+          <span>Storage</span>
+          <strong id="totalStorage">0 GB</strong>
+          <p>Total scanned size</p>
         </article>
       </section>
 
-      <section class="controls-panel">
-        <div class="search-box">
-          <label for="searchInput">Search library</label>
-          <input 
-            id="searchInput" 
-            type="text" 
-            placeholder="Search by movie name..."
-          />
-        </div>
-
-        <div class="filter-box">
-          <label for="qualityFilter">Filter quality</label>
+      <section class="filters-panel">
+        <div>
+          <label for="qualityFilter">Quick Filter</label>
           <select id="qualityFilter">
-            <option value="all">All Movies</option>
-            <option value="4K">4K</option>
+            <option value="all">All Qualities</option>
+            <option value="4K">4K Ultra HD</option>
             <option value="1080p">1080p</option>
             <option value="720p">720p</option>
-            <option value="SD">SD / Unknown</option>
+            <option value="SD">SD</option>
+            <option value="Unknown">Unknown</option>
           </select>
         </div>
 
-        <button id="clearButton" class="ghost-button">
-          Clear Saved Library
-        </button>
-      </section>
-
-      <section class="library-header">
         <div>
-          <h2>Your Movies</h2>
-          <p id="statusText">Scan a folder to begin.</p>
+          <label for="sortSelect">Sort By</label>
+          <select id="sortSelect">
+            <option value="newest">Recently Scanned</option>
+            <option value="name">Name A-Z</option>
+            <option value="largest">Largest File</option>
+            <option value="quality">Highest Quality</option>
+          </select>
         </div>
       </section>
 
-      <section id="movieGrid" class="movie-grid">
-        <div class="empty-state">
-          <div class="empty-poster">🎬</div>
-          <h3>No movies scanned yet</h3>
-          <p>Click “Scan Movie Folder” and choose the folder where your movie files are stored.</p>
-        </div>
-      </section>
+      <section id="library" class="library-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Video Archive</p>
+            <h2>Scanned Movies</h2>
+          </div>
 
+          <p id="resultCount">No movies scanned yet</p>
+        </div>
+
+        <section id="emptyState" class="empty-state">
+          <div class="empty-icon">🎬</div>
+
+          <h3>No movie folder scanned yet.</h3>
+
+          <p>
+            Click <strong>Scan Movie Folder</strong> in the top bar and select the folder that contains your movies.
+            Your real files will appear here with retro-modern poster cards.
+          </p>
+        </section>
+
+        <div id="movieGrid" class="movie-grid"></div>
+      </section>
     </main>
 
+    <aside id="details" class="details-panel">
+      <div id="detailsEmpty" class="details-empty">
+        <div class="details-icon">🎥</div>
+        <h3>Now Selected</h3>
+        <p>Select a movie to view its details.</p>
+      </div>
+
+      <div id="detailsContent" class="details-content hidden">
+        <div id="detailsPoster" class="details-poster fallback-poster">
+          <span id="detailsQualityBadge">4K</span>
+          <strong id="detailsPosterTitle">Movie</strong>
+        </div>
+
+        <p class="eyebrow">Now Selected</p>
+        <h3 id="detailsTitle">Movie Title</h3>
+
+        <div class="details-tags">
+          <span id="detailsQuality">Unknown</span>
+          <span id="detailsType">MP4</span>
+          <span id="detailsSize">0 GB</span>
+        </div>
+
+        <dl>
+          <div>
+            <dt>File Name</dt>
+            <dd id="detailsFileName">None</dd>
+          </div>
+
+          <div>
+            <dt>Folder</dt>
+            <dd id="detailsFolder">None</dd>
+          </div>
+
+          <div>
+            <dt>Detected Path</dt>
+            <dd id="detailsPath">None</dd>
+          </div>
+        </dl>
+
+        <button id="openModalButton" class="primary-button full-button" type="button">
+          View Full Details
+        </button>
+      </div>
+    </aside>
   </div>
+
+  <div id="movieModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Movie File Details</p>
+          <h2 id="modalTitle">Movie Title</h2>
+        </div>
+
+        <button id="closeModalButton" class="secondary-button" type="button">
+          Close
+        </button>
+      </div>
+
+      <div class="modal-grid">
+        <article>
+          <span>Quality</span>
+          <strong id="modalQuality">Unknown</strong>
+        </article>
+
+        <article>
+          <span>File Size</span>
+          <strong id="modalSize">0 GB</strong>
+        </article>
+
+        <article>
+          <span>File Type</span>
+          <strong id="modalType">MP4</strong>
+        </article>
+
+        <article>
+          <span>Folder</span>
+          <strong id="modalFolder">None</strong>
+        </article>
+      </div>
+
+      <div class="modal-path-card">
+        <span>File Name</span>
+        <p id="modalFileName"></p>
+      </div>
+
+      <div class="modal-path-card">
+        <span>Detected Path</span>
+        <p id="modalPath"></p>
+      </div>
+    </div>
+  </div>
+
+  <input id="folderInput" type="file" webkitdirectory directory multiple hidden />
+
+  <div id="toast" class="toast"></div>
 
   <script src="script.js"></script>
 </body>
