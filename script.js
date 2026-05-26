@@ -1,233 +1,211 @@
-const folderInput = document.getElementById("folderInput");
-const fileInput = document.getElementById("fileInput");
+const STORAGE_KEY = "cinemaLibraryMovies";
+const SCAN_KEY = "cinemaLibraryLastScan";
+
+const supportedExtensions = [".mp4", ".mkv", ".mov", ".avi", ".webm", ".m4v"];
+
+let movies = loadMovies();
 
 const scanFolderButton = document.getElementById("scanFolderButton");
-const scanFilesButton = document.getElementById("scanFilesButton");
-const exportButton = document.getElementById("exportButton");
-const clearButton = document.getElementById("clearButton");
-const themeButton = document.getElementById("themeButton");
+const heroScanButton = document.getElementById("heroScanButton");
+const emptyScanButton = document.getElementById("emptyScanButton");
+const clearLibraryButton = document.getElementById("clearLibraryButton");
+const exportLibraryButton = document.getElementById("exportLibraryButton");
 
-const libraryStatus = document.getElementById("libraryStatus");
-const totalMovies = document.getElementById("totalMovies");
-const totalSize = document.getElementById("totalSize");
-const fourKMovies = document.getElementById("fourKMovies");
-const driveCount = document.getElementById("driveCount");
+const folderInput = document.getElementById("folderInput");
+
+const movieCount = document.getElementById("movieCount");
+const totalStorage = document.getElementById("totalStorage");
+const highestQuality = document.getElementById("highestQuality");
+const lastScan = document.getElementById("lastScan");
 
 const searchInput = document.getElementById("searchInput");
 const qualityFilter = document.getElementById("qualityFilter");
-const driveFilter = document.getElementById("driveFilter");
 const sortSelect = document.getElementById("sortSelect");
+const resultCount = document.getElementById("resultCount");
 
-const libraryTitle = document.getElementById("libraryTitle");
-const lastScanText = document.getElementById("lastScanText");
 const emptyState = document.getElementById("emptyState");
 const movieGrid = document.getElementById("movieGrid");
 
-const videoModal = document.getElementById("videoModal");
-const videoTitle = document.getElementById("videoTitle");
-const videoPlayer = document.getElementById("videoPlayer");
-const closeVideoButton = document.getElementById("closeVideoButton");
+const movieModal = document.getElementById("movieModal");
+const closeModalButton = document.getElementById("closeModalButton");
 
-const STORAGE_KEY = "cinemaLibraryData";
-const THEME_KEY = "cinemaLibraryTheme";
+const modalTitle = document.getElementById("modalTitle");
+const modalQuality = document.getElementById("modalQuality");
+const modalSize = document.getElementById("modalSize");
+const modalType = document.getElementById("modalType");
+const modalModified = document.getElementById("modalModified");
+const modalFileName = document.getElementById("modalFileName");
+const modalPath = document.getElementById("modalPath");
 
-const movieExtensions = [
-  "mp4",
-  "mkv",
-  "avi",
-  "mov",
-  "m4v",
-  "wmv",
-  "webm",
-  "flv",
-  "ts",
-  "m2ts"
-];
+const toast = document.getElementById("toast");
 
-let movies = [];
-let sessionFileMap = new Map();
+renderApp();
 
-loadSavedTheme();
-loadSavedLibrary();
+scanFolderButton.addEventListener("click", startScan);
+heroScanButton.addEventListener("click", startScan);
+emptyScanButton.addEventListener("click", startScan);
 
-scanFolderButton.addEventListener("click", () => {
-  folderInput.click();
-});
+folderInput.addEventListener("change", handleFallbackFolderScan);
 
-scanFilesButton.addEventListener("click", () => {
-  fileInput.click();
-});
+clearLibraryButton.addEventListener("click", () => {
+  const confirmed = confirm("Clear your saved movie library?");
 
-folderInput.addEventListener("change", (event) => {
-  scanFiles(event.target.files);
-  folderInput.value = "";
-});
-
-fileInput.addEventListener("change", (event) => {
-  scanFiles(event.target.files);
-  fileInput.value = "";
-});
-
-searchInput.addEventListener("input", renderMovies);
-qualityFilter.addEventListener("change", renderMovies);
-driveFilter.addEventListener("change", renderMovies);
-sortSelect.addEventListener("change", renderMovies);
-
-themeButton.addEventListener("click", () => {
-  document.body.classList.toggle("light");
-
-  const theme = document.body.classList.contains("light") ? "light" : "dark";
-  localStorage.setItem(THEME_KEY, theme);
-});
-
-clearButton.addEventListener("click", () => {
-  const confirmClear = confirm("Clear your saved Cinema Library metadata?");
-
-  if (!confirmClear) {
+  if (!confirmed) {
     return;
   }
 
   movies = [];
-  sessionFileMap.clear();
   localStorage.removeItem(STORAGE_KEY);
-  updateDashboard();
+  localStorage.removeItem(SCAN_KEY);
+
+  renderApp();
+  showToast("Library cleared.");
 });
 
-exportButton.addEventListener("click", exportLibrary);
+exportLibraryButton.addEventListener("click", exportLibrary);
 
-closeVideoButton.addEventListener("click", closeVideo);
+searchInput.addEventListener("input", renderMovies);
+qualityFilter.addEventListener("change", renderMovies);
+sortSelect.addEventListener("change", renderMovies);
 
-videoModal.addEventListener("click", (event) => {
-  if (event.target === videoModal) {
-    closeVideo();
+closeModalButton.addEventListener("click", () => {
+  movieModal.classList.add("hidden");
+});
+
+movieModal.addEventListener("click", (event) => {
+  if (event.target === movieModal) {
+    movieModal.classList.add("hidden");
   }
 });
 
-function scanFiles(fileList) {
-  const files = Array.from(fileList);
+async function startScan() {
+  if ("showDirectoryPicker" in window) {
+    await scanWithDirectoryPicker();
+  } else {
+    folderInput.click();
+  }
+}
 
-  if (files.length === 0) {
+async function scanWithDirectoryPicker() {
+  try {
+    const directoryHandle = await window.showDirectoryPicker();
+    const scannedMovies = [];
+
+    await scanDirectoryHandle(directoryHandle, scannedMovies, directoryHandle.name);
+
+    saveScannedMovies(scannedMovies);
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      console.error(error);
+      showToast("Folder scan could not be completed.");
+    }
+  }
+}
+
+async function scanDirectoryHandle(directoryHandle, scannedMovies, basePath) {
+  for await (const entry of directoryHandle.values()) {
+    const currentPath = `${basePath}/${entry.name}`;
+
+    if (entry.kind === "file") {
+      const file = await entry.getFile();
+
+      if (isMovieFile(file.name)) {
+        scannedMovies.push(createMovieFromFile(file, currentPath, basePath));
+      }
+    }
+
+    if (entry.kind === "directory") {
+      await scanDirectoryHandle(entry, scannedMovies, currentPath);
+    }
+  }
+}
+
+function handleFallbackFolderScan(event) {
+  const files = Array.from(event.target.files);
+  const scannedMovies = files
+    .filter((file) => isMovieFile(file.name))
+    .map((file) => {
+      const path = file.webkitRelativePath || file.name;
+      const folderName = path.split("/")[0] || "Selected Folder";
+
+      return createMovieFromFile(file, path, folderName);
+    });
+
+  saveScannedMovies(scannedMovies);
+
+  folderInput.value = "";
+}
+
+function saveScannedMovies(scannedMovies) {
+  if (scannedMovies.length === 0) {
+    showToast("No supported movie files were found.");
     return;
   }
 
-  libraryStatus.textContent = "Scanning your selected movie files...";
+  movies = scannedMovies;
 
-  const movieFiles = files.filter((file) => {
-    return isMovieFile(file.name);
-  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(movies));
+  localStorage.setItem(SCAN_KEY, new Date().toISOString());
 
-  if (movieFiles.length === 0) {
-    libraryStatus.textContent = "No supported movie files found in that selection.";
-    return;
-  }
+  renderApp();
 
-  const scannedMovies = movieFiles.map((file) => {
-    const relativePath = file.webkitRelativePath || file.name;
-    const id = createMovieId(file, relativePath);
+  showToast(`${scannedMovies.length} movie file(s) scanned.`);
+}
 
-    sessionFileMap.set(id, file);
+function createMovieFromFile(file, path, folderName) {
+  const title = cleanMovieTitle(file.name);
+  const extension = getExtension(file.name);
+  const quality = detectQuality(file.name);
+  const scannedAt = new Date().toISOString();
 
-    return {
-      id: id,
-      title: cleanMovieTitle(file.name),
-      fileName: file.name,
-      extension: getExtension(file.name).toUpperCase(),
-      size: file.size,
-      sizeFormatted: formatBytes(file.size),
-      quality: inferQuality(file.name),
-      drive: getDriveLabel(relativePath),
-      relativePath: relativePath,
-      lastModified: file.lastModified,
-      lastModifiedFormatted: formatDate(file.lastModified),
-      scannedAt: new Date().toISOString()
-    };
-  });
-
-  const movieMap = new Map();
-
-  movies.forEach((movie) => {
-    movieMap.set(movie.id, movie);
-  });
-
-  scannedMovies.forEach((movie) => {
-    movieMap.set(movie.id, movie);
-  });
-
-  movies = Array.from(movieMap.values());
-
-  saveLibrary();
-  updateDashboard();
-
-  libraryStatus.textContent = `Scan complete. Added/updated ${scannedMovies.length} real movie file(s).`;
+  return {
+    id: crypto.randomUUID ? crypto.randomUUID() : `${file.name}-${Date.now()}-${Math.random()}`,
+    title,
+    fileName: file.name,
+    path,
+    folderName,
+    extension,
+    quality,
+    sizeBytes: file.size,
+    lastModified: file.lastModified,
+    scannedAt
+  };
 }
 
 function isMovieFile(fileName) {
-  const extension = getExtension(fileName);
-  return movieExtensions.includes(extension);
+  const lowerName = fileName.toLowerCase();
+
+  return supportedExtensions.some((extension) => {
+    return lowerName.endsWith(extension);
+  });
 }
 
 function getExtension(fileName) {
-  const pieces = fileName.toLowerCase().split(".");
-  return pieces.length > 1 ? pieces.pop() : "";
+  const parts = fileName.split(".");
+  return parts.length > 1 ? parts.pop().toUpperCase() : "Unknown";
 }
 
-function createMovieId(file, relativePath) {
-  return `${relativePath}-${file.size}-${file.lastModified}`;
-}
-
-function getDriveLabel(relativePath) {
-  if (!relativePath || !relativePath.includes("/")) {
-    return "Selected Files";
-  }
-
-  return relativePath.split("/")[0] || "Unknown Folder";
-}
-
-function cleanMovieTitle(fileName) {
-  const extension = getExtension(fileName);
-  let title = fileName;
-
-  if (extension) {
-    title = title.slice(0, -(extension.length + 1));
-  }
-
-  title = title
-    .replace(/[._-]+/g, " ")
-    .replace(/\b(2160p|1080p|720p|480p|4320p|8k|4k|uhd|hdr|dv|dolby|bluray|blu ray|web dl|webrip|brrip|x264|x265|h264|h265|hevc|aac|dts|truehd|atmos)\b/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  return title || fileName;
-}
-
-function inferQuality(fileName) {
+function detectQuality(fileName) {
   const lowerName = fileName.toLowerCase();
 
   if (
-    lowerName.includes("4320p") ||
-    lowerName.includes("8k")
-  ) {
-    return "8K";
-  }
-
-  if (
-    lowerName.includes("2160p") ||
+    lowerName.includes("2160") ||
     lowerName.includes("4k") ||
     lowerName.includes("uhd")
   ) {
     return "4K";
   }
 
-  if (lowerName.includes("1080p")) {
+  if (lowerName.includes("1080")) {
     return "1080p";
   }
 
-  if (lowerName.includes("720p")) {
+  if (lowerName.includes("720")) {
     return "720p";
   }
 
   if (
-    lowerName.includes("480p") ||
+    lowerName.includes("480") ||
     lowerName.includes("dvd") ||
     lowerName.includes("sd")
   ) {
@@ -237,303 +215,200 @@ function inferQuality(fileName) {
   return "Unknown";
 }
 
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) {
-    return "0 GB";
-  }
+function cleanMovieTitle(fileName) {
+  const withoutExtension = fileName.replace(/\.[^/.]+$/, "");
 
-  const units = ["Bytes", "KB", "MB", "GB", "TB"];
-  const unitIndex = Math.floor(Math.log(bytes) / Math.log(1024));
-  const safeUnitIndex = Math.min(unitIndex, units.length - 1);
-  const value = bytes / Math.pow(1024, safeUnitIndex);
-
-  return `${value.toFixed(value >= 100 ? 0 : 2)} ${units[safeUnitIndex]}`;
+  return withoutExtension
+    .replace(/[._-]/g, " ")
+    .replace(/\b(2160p|1080p|720p|480p|4k|uhd|bluray|brrip|webrip|web dl|x264|x265|h264|h265|hevc|aac|dts)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function formatDate(timeStamp) {
-  if (!timeStamp) {
-    return "Unknown";
-  }
-
-  return new Date(timeStamp).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  });
-}
-
-function updateDashboard() {
-  const totalBytes = movies.reduce((sum, movie) => sum + movie.size, 0);
-  const fourKCount = movies.filter((movie) => movie.quality === "4K" || movie.quality === "8K").length;
-  const drives = [...new Set(movies.map((movie) => movie.drive))];
-
-  totalMovies.textContent = movies.length;
-  totalSize.textContent = formatBytes(totalBytes);
-  fourKMovies.textContent = fourKCount;
-  driveCount.textContent = drives.length;
-
-  libraryTitle.textContent = movies.length === 1 ? "1 movie loaded" : `${movies.length} movies loaded`;
-
-  if (movies.length === 0) {
-    lastScanText.textContent = "Last scan: never";
-    libraryStatus.textContent = "No library scanned yet.";
-  } else {
-    const newestScan = movies
-      .map((movie) => new Date(movie.scannedAt).getTime())
-      .sort((a, b) => b - a)[0];
-
-    lastScanText.textContent = `Last scan: ${new Date(newestScan).toLocaleString()}`;
-  }
-
-  updateDriveFilter(drives);
+function renderApp() {
+  renderStats();
   renderMovies();
 }
 
-function updateDriveFilter(drives) {
-  const currentValue = driveFilter.value;
+function renderStats() {
+  const totalBytes = movies.reduce((sum, movie) => sum + movie.sizeBytes, 0);
+  const bestQuality = getHighestQuality();
+  const savedScanDate = localStorage.getItem(SCAN_KEY);
 
-  driveFilter.innerHTML = `<option value="all">All Drives</option>`;
-
-  drives.sort().forEach((drive) => {
-    const option = document.createElement("option");
-    option.value = drive;
-    option.textContent = drive;
-    driveFilter.appendChild(option);
-  });
-
-  if (drives.includes(currentValue)) {
-    driveFilter.value = currentValue;
-  }
-}
-
-function getFilteredMovies() {
-  const searchTerm = searchInput.value.toLowerCase().trim();
-  const selectedQuality = qualityFilter.value;
-  const selectedDrive = driveFilter.value;
-
-  let filteredMovies = movies.filter((movie) => {
-    const searchableText = `
-      ${movie.title}
-      ${movie.fileName}
-      ${movie.extension}
-      ${movie.quality}
-      ${movie.drive}
-      ${movie.relativePath}
-    `.toLowerCase();
-
-    const matchesSearch = searchableText.includes(searchTerm);
-    const matchesQuality = selectedQuality === "all" || movie.quality === selectedQuality;
-    const matchesDrive = selectedDrive === "all" || movie.drive === selectedDrive;
-
-    return matchesSearch && matchesQuality && matchesDrive;
-  });
-
-  filteredMovies = sortMovies(filteredMovies);
-
-  return filteredMovies;
-}
-
-function sortMovies(movieList) {
-  const sortedMovies = [...movieList];
-
-  const qualityRank = {
-    "8K": 6,
-    "4K": 5,
-    "1080p": 4,
-    "720p": 3,
-    "SD": 2,
-    "Unknown": 1
-  };
-
-  if (sortSelect.value === "nameAsc") {
-    sortedMovies.sort((a, b) => a.title.localeCompare(b.title));
-  }
-
-  if (sortSelect.value === "nameDesc") {
-    sortedMovies.sort((a, b) => b.title.localeCompare(a.title));
-  }
-
-  if (sortSelect.value === "sizeDesc") {
-    sortedMovies.sort((a, b) => b.size - a.size);
-  }
-
-  if (sortSelect.value === "sizeAsc") {
-    sortedMovies.sort((a, b) => a.size - b.size);
-  }
-
-  if (sortSelect.value === "quality") {
-    sortedMovies.sort((a, b) => {
-      return (qualityRank[b.quality] || 0) - (qualityRank[a.quality] || 0);
-    });
-  }
-
-  if (sortSelect.value === "newest") {
-    sortedMovies.sort((a, b) => b.lastModified - a.lastModified);
-  }
-
-  return sortedMovies;
+  movieCount.textContent = movies.length;
+  totalStorage.textContent = formatBytes(totalBytes);
+  highestQuality.textContent = bestQuality;
+  lastScan.textContent = savedScanDate ? formatDate(savedScanDate) : "Never";
 }
 
 function renderMovies() {
-  const filteredMovies = getFilteredMovies();
+  let filteredMovies = [...movies];
+
+  const searchTerm = searchInput.value.toLowerCase().trim();
+  const selectedQuality = qualityFilter.value;
+  const sortValue = sortSelect.value;
+
+  if (searchTerm) {
+    filteredMovies = filteredMovies.filter((movie) => {
+      return `
+        ${movie.title}
+        ${movie.fileName}
+        ${movie.path}
+        ${movie.folderName}
+        ${movie.quality}
+        ${movie.extension}
+      `.toLowerCase().includes(searchTerm);
+    });
+  }
+
+  if (selectedQuality !== "all") {
+    filteredMovies = filteredMovies.filter((movie) => {
+      return movie.quality === selectedQuality;
+    });
+  }
+
+  filteredMovies = sortMovies(filteredMovies, sortValue);
 
   movieGrid.innerHTML = "";
 
   if (movies.length === 0) {
-    emptyState.style.display = "block";
-    movieGrid.style.display = "none";
+    emptyState.classList.remove("hidden");
+    movieGrid.classList.add("hidden");
+    resultCount.textContent = "No movies scanned yet";
     return;
   }
 
-  emptyState.style.display = "none";
-  movieGrid.style.display = "grid";
+  emptyState.classList.add("hidden");
+  movieGrid.classList.remove("hidden");
+
+  resultCount.textContent = `Showing ${filteredMovies.length} of ${movies.length} movies`;
 
   if (filteredMovies.length === 0) {
     movieGrid.innerHTML = `
-      <div class="empty-state" style="grid-column: 1 / -1;">
-        <h2>No movies match your filters.</h2>
-        <p>Try searching a different title, quality, drive, or file type.</p>
+      <div class="empty-state">
+        <div class="empty-icon">🔎</div>
+        <h3>No matching movies found.</h3>
+        <p>Try clearing the search or changing your quality filter.</p>
       </div>
     `;
     return;
   }
-
-  const fragment = document.createDocumentFragment();
 
   filteredMovies.forEach((movie) => {
     const card = document.createElement("article");
     card.className = "movie-card";
 
-    const canPlay = sessionFileMap.has(movie.id);
-
     card.innerHTML = `
-      <div class="poster">
-        <span class="quality-pill">${movie.quality}</span>
-        <span class="poster-letter">${getPosterLetter(movie.title)}</span>
+      <div class="movie-poster">
+        <div class="movie-poster-icon">🎞️</div>
+        <span class="quality-badge">${movie.quality}</span>
       </div>
 
       <div class="movie-content">
-        <h3 class="movie-title">${escapeHTML(movie.title)}</h3>
+        <h3>${escapeHTML(movie.title || movie.fileName)}</h3>
 
         <div class="movie-meta">
-          <div class="meta-row">
-            <span>Size</span>
-            <small>${movie.sizeFormatted}</small>
-          </div>
-
-          <div class="meta-row">
-            <span>Type</span>
-            <small>${movie.extension}</small>
-          </div>
-
-          <div class="meta-row">
-            <span>Drive</span>
-            <small>${escapeHTML(movie.drive)}</small>
-          </div>
-
-          <div class="meta-row">
-            <span>Modified</span>
-            <small>${movie.lastModifiedFormatted}</small>
-          </div>
+          <span>${movie.extension}</span>
+          <span>${formatBytes(movie.sizeBytes)}</span>
+          <span>${escapeHTML(movie.folderName)}</span>
         </div>
 
-        <p class="path-text">${escapeHTML(movie.relativePath)}</p>
+        <p class="movie-path">${escapeHTML(shortenPath(movie.path))}</p>
 
-        <button class="play-button" type="button" ${canPlay ? "" : "disabled"}>
-          ${canPlay ? "Play Preview" : "Rescan to Play"}
+        <button class="details-button" data-id="${movie.id}" type="button">
+          View Details
         </button>
       </div>
     `;
 
-    const playButton = card.querySelector(".play-button");
-
-    playButton.addEventListener("click", () => {
-      playMovie(movie);
+    card.querySelector(".details-button").addEventListener("click", () => {
+      openMovieDetails(movie.id);
     });
 
-    fragment.appendChild(card);
+    movieGrid.appendChild(card);
   });
-
-  movieGrid.appendChild(fragment);
 }
 
-function getPosterLetter(title) {
-  return title.trim().charAt(0).toUpperCase() || "C";
-}
-
-function playMovie(movie) {
-  const file = sessionFileMap.get(movie.id);
-
-  if (!file) {
-    alert("For browser security, you need to rescan this file before playback.");
-    return;
-  }
-
-  const videoURL = URL.createObjectURL(file);
-
-  videoTitle.textContent = movie.title;
-  videoPlayer.src = videoURL;
-  videoModal.classList.remove("hidden");
-  videoPlayer.play();
-}
-
-function closeVideo() {
-  videoPlayer.pause();
-  videoPlayer.removeAttribute("src");
-  videoPlayer.load();
-  videoModal.classList.add("hidden");
-}
-
-function saveLibrary() {
-  const saveData = {
-    movies: movies,
-    savedAt: new Date().toISOString()
+function sortMovies(movieList, sortValue) {
+  const qualityRank = {
+    "4K": 4,
+    "1080p": 3,
+    "720p": 2,
+    "SD": 1,
+    "Unknown": 0
   };
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+  if (sortValue === "name") {
+    return movieList.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  if (sortValue === "newest") {
+    return movieList.sort((a, b) => {
+      return new Date(b.scannedAt) - new Date(a.scannedAt);
+    });
+  }
+
+  if (sortValue === "largest") {
+    return movieList.sort((a, b) => b.sizeBytes - a.sizeBytes);
+  }
+
+  if (sortValue === "quality") {
+    return movieList.sort((a, b) => {
+      return qualityRank[b.quality] - qualityRank[a.quality];
+    });
+  }
+
+  return movieList;
 }
 
-function loadSavedLibrary() {
-  const savedData = localStorage.getItem(STORAGE_KEY);
+function getHighestQuality() {
+  const qualityRank = {
+    "4K": 4,
+    "1080p": 3,
+    "720p": 2,
+    "SD": 1,
+    "Unknown": 0
+  };
 
-  if (!savedData) {
-    updateDashboard();
+  if (movies.length === 0) {
+    return "None";
+  }
+
+  const best = movies.reduce((top, movie) => {
+    return qualityRank[movie.quality] > qualityRank[top.quality] ? movie : top;
+  }, movies[0]);
+
+  return best.quality;
+}
+
+function openMovieDetails(id) {
+  const movie = movies.find((item) => item.id === id);
+
+  if (!movie) {
     return;
   }
 
-  try {
-    const parsedData = JSON.parse(savedData);
-    movies = parsedData.movies || [];
-    updateDashboard();
+  modalTitle.textContent = movie.title || movie.fileName;
+  modalQuality.textContent = movie.quality;
+  modalSize.textContent = formatBytes(movie.sizeBytes);
+  modalType.textContent = movie.extension;
+  modalModified.textContent = movie.lastModified
+    ? new Date(movie.lastModified).toLocaleDateString()
+    : "Unknown";
+  modalFileName.textContent = movie.fileName;
+  modalPath.textContent = movie.path;
 
-    if (movies.length > 0) {
-      libraryStatus.textContent = "Saved library metadata loaded. Rescan folders to enable playback.";
-    }
-  } catch (error) {
-    console.error("Could not load saved library:", error);
-    movies = [];
-    updateDashboard();
-  }
+  movieModal.classList.remove("hidden");
 }
 
 function exportLibrary() {
   if (movies.length === 0) {
-    alert("Scan a movie folder before exporting.");
+    showToast("Scan movies before exporting.");
     return;
   }
 
-  const exportData = {
-    app: "Cinema Library",
-    exportedAt: new Date().toISOString(),
-    totalMovies: movies.length,
-    totalSize: formatBytes(movies.reduce((sum, movie) => sum + movie.size, 0)),
-    movies: movies
-  };
-
-  const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-    type: "application/json"
-  });
-
+  const data = JSON.stringify(movies, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
@@ -542,14 +417,59 @@ function exportLibrary() {
   link.click();
 
   URL.revokeObjectURL(url);
+
+  showToast("Library exported.");
 }
 
-function loadSavedTheme() {
-  const savedTheme = localStorage.getItem(THEME_KEY);
+function loadMovies() {
+  const saved = localStorage.getItem(STORAGE_KEY);
 
-  if (savedTheme === "light") {
-    document.body.classList.add("light");
+  if (!saved) {
+    return [];
   }
+
+  try {
+    return JSON.parse(saved);
+  } catch {
+    return [];
+  }
+}
+
+function formatBytes(bytes) {
+  if (!bytes) {
+    return "0 GB";
+  }
+
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const index = Math.floor(Math.log(bytes) / Math.log(1024));
+  const value = bytes / Math.pow(1024, index);
+
+  return `${value.toFixed(index >= 3 ? 2 : 1)} ${units[index]}`;
+}
+
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+}
+
+function shortenPath(path) {
+  if (path.length <= 58) {
+    return path;
+  }
+
+  return `...${path.slice(-58)}`;
+}
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2600);
 }
 
 function escapeHTML(text) {
