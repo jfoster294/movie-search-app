@@ -3,7 +3,6 @@
   margin: 0;
   padding: 0;
 }
-
 :root {
   --bg: #03050c;
   --panel: rgba(7, 12, 22, 0.82);
@@ -22,11 +21,9 @@
   --radius-lg: 26px;
   --radius-md: 18px;
 }
-
 html {
   scroll-behavior: smooth;
 }
-
 body {
   min-height: 100vh;
   overflow-x: hidden;
@@ -37,19 +34,16 @@ body {
     radial-gradient(circle at 82% 28%, rgba(0, 229, 255, 0.12), transparent 32%),
     linear-gradient(135deg, #02030a, #060b16 55%, #03050c);
 }
-
 button,
 input,
 select {
   font: inherit;
 }
-
 button {
   border: 0;
   cursor: pointer;
   appearance: none;
 }
-
 input,
 select {
   width: 100%;
@@ -62,11 +56,9 @@ select {
   background: rgba(2, 6, 16, 0.86);
   box-shadow: inset 0 0 18px rgba(0, 229, 255, 0.04);
 }
-
 input::placeholder {
   color: rgba(248, 250, 252, 0.45);
 }
-
 input:focus,
 select:focus {
   border-color: var(--pink);
@@ -74,11 +66,9 @@ select:focus {
     0 0 0 3px rgba(255, 47, 142, 0.14),
     0 0 28px rgba(255, 47, 142, 0.12);
 }
-
 .hidden {
   display: none !important;
 }
-
 .crt-layer {
   position: fixed;
   inset: 0;
@@ -95,14 +85,12 @@ select:focus {
   opacity: 0.25;
   mix-blend-mode: overlay;
 }
-
 .crt-layer::after {
   content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(circle at center, transparent 48%, rgba(0, 0, 0, 0.5));
 }
-
 .page-glow {
   position: fixed;
   inset: -20%;
@@ -113,7 +101,6 @@ select:focus {
     radial-gradient(circle at 60% 45%, rgba(0, 229, 255, 0.08), transparent 40%);
   filter: blur(8px);
 }
-
 .app-shell {
   width: min(1800px, 100%);
   min-height: 100vh;
@@ -122,7 +109,6 @@ select:focus {
   gap: 22px;
   padding: 18px;
 }
-
 .sidebar,
 .main-content,
 .details-panel {
@@ -133,7 +119,6 @@ select:focus {
     rgba(4, 8, 18, 0.78);
   box-shadow: var(--shadow);
 }
-
 .sidebar {
   position: sticky;
   top: 18px;
@@ -143,7 +128,6 @@ select:focus {
   gap: 20px;
   padding: 18px;
 }
-
 .logo-block {
   display: flex;
   gap: 12px;
@@ -151,7 +135,6 @@ select:focus {
   padding-bottom: 18px;
   border-bottom: 1px solid rgba(0, 229, 255, 0.13);
 }
-
 .logo-icon {
   width: 54px;
   height: 54px;
@@ -164,25 +147,21 @@ select:focus {
   font-size: 1.8rem;
   box-shadow: 0 0 24px rgba(255, 47, 142, 0.22);
 }
-
 .logo-block h1 {
   font-size: 1.25rem;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
-
 .logo-block p {
   margin-top: 5px;
   color: var(--muted);
   font-size: 0.86rem;
 }
-
 .side-nav {
   display: grid;
   gap: 9px;
 }
-
 .side-nav a {
   min-height: 50px;
   display: flex;
@@ -194,7 +173,6 @@ select:focus {
   text-decoration: none;
   font-weight: 800;
 }
-
 .side-nav a:hover,
 .side-nav a.active {
   color: var(--text);
@@ -202,7 +180,6 @@ select:focus {
   background: rgba(255, 47, 142, 0.13);
   box-shadow: inset 0 0 20px rgba(255, 47, 142, 0.06);
 }
-
 .library-status {
   margin-top: auto;
   border: 1px solid var(--border);
@@ -211,7 +188,6 @@ select:focus {
   text-align: center;
   background: rgba(2, 6, 16, 0.7);
 }
-
 .library-status > p {
   color: var(--pink);
   font-weight: 900;
@@ -219,7 +195,6 @@ select:focus {
   text-transform: uppercase;
   margin-bottom: 14px;
 }
-
 .library-status strong {
   display: block;
   color: var(--pink);
@@ -227,7 +202,6 @@ select:focus {
   line-height: 1;
   text-shadow: 0 0 16px rgba(255, 47, 142, 0.35);
 }
-
 .library-status span {
   display: block;
   color: var(--cyan);
@@ -236,7 +210,6 @@ select:focus {
   text-transform: uppercase;
   margin: 5px 0 14px;
 }
-
 .online-row {
   display: flex;
   justify-content: center;
@@ -245,7 +218,6 @@ select:focus {
   margin-top: 16px;
   color: var(--green);
 }
-
 .online-row span {
   width: 10px;
   height: 10px;
@@ -254,27 +226,27 @@ select:focus {
   background: var(--green);
   box-shadow: 0 0 14px rgba(0, 255, 136, 0.8);
 }
-
 .online-row p {
   color: var(--green);
   font-size: 0.78rem;
   font-weight: 900;
   text-transform: uppercase;
 }
-
 .main-content {
   min-width: 0;
   padding: 22px;
 }
-
+/* Fixed top bar layout */
 .top-bar {
   display: grid;
-  grid-template-columns: auto minmax(240px, 1fr) auto;
-  gap: 18px;
-  align-items: center;
-  margin-bottom: 20px;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 22px;
 }
-
+.brand-title {
+  text-align: left;
+}
 .brand-title h2 {
   color: var(--pink);
   font-size: clamp(2rem, 4vw, 3.6rem);
@@ -284,7 +256,6 @@ select:focus {
     0 0 9px rgba(255, 47, 142, 0.7),
     0 0 28px rgba(255, 47, 142, 0.32);
 }
-
 .brand-title span {
   display: block;
   margin-top: 8px;
@@ -293,17 +264,24 @@ select:focus {
   font-weight: 900;
   letter-spacing: 0.18em;
 }
-
-.top-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: flex-end;
+.top-search {
+  width: 100%;
+  max-width: 680px;
 }
-
+.top-actions {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.top-actions .primary-button,
+.top-actions .secondary-button {
+  width: 100%;
+}
 .primary-button,
 .secondary-button {
-  min-height: 50px;
+  min-height: 54px;
   display: inline-flex;
   justify-content: center;
   align-items: center;
@@ -315,7 +293,6 @@ select:focus {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-
 .primary-button {
   color: #fff;
   border: 1px solid rgba(255, 47, 142, 0.95);
@@ -326,7 +303,6 @@ select:focus {
     0 0 18px rgba(255, 47, 142, 0.42),
     inset 0 0 18px rgba(255, 255, 255, 0.12);
 }
-
 .secondary-button {
   color: var(--cyan);
   border: 1px solid rgba(0, 229, 255, 0.45);
@@ -335,12 +311,10 @@ select:focus {
     0 0 14px rgba(0, 229, 255, 0.12),
     inset 0 0 18px rgba(0, 229, 255, 0.045);
 }
-
 .primary-button:hover,
 .secondary-button:hover {
   transform: translateY(-2px);
 }
-
 .hero-panel {
   min-height: 300px;
   display: grid;
@@ -356,19 +330,15 @@ select:focus {
     linear-gradient(135deg, rgba(255, 47, 142, 0.08), rgba(0, 229, 255, 0.035)),
     rgba(2, 6, 16, 0.82);
 }
-
 .hero-art {
   min-height: 260px;
 }
-
 .hero-poster {
   height: 100%;
 }
-
 .hero-copy {
   align-self: center;
 }
-
 .eyebrow {
   color: var(--pink);
   font-size: 0.78rem;
@@ -376,7 +346,6 @@ select:focus {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
-
 .hero-copy h2 {
   margin: 10px 0;
   color: var(--text);
@@ -384,19 +353,16 @@ select:focus {
   line-height: 0.92;
   letter-spacing: -0.05em;
 }
-
 .hero-copy p {
   color: var(--muted);
   line-height: 1.7;
 }
-
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
   margin-bottom: 18px;
 }
-
 .stat-card,
 .filters-panel,
 .library-section {
@@ -407,11 +373,9 @@ select:focus {
     inset 0 0 35px rgba(0, 229, 255, 0.025),
     0 20px 60px rgba(0, 0, 0, 0.48);
 }
-
 .stat-card {
   padding: 18px;
 }
-
 .stat-card span {
   color: var(--muted);
   font-size: 0.78rem;
@@ -419,7 +383,6 @@ select:focus {
   letter-spacing: 0.11em;
   text-transform: uppercase;
 }
-
 .stat-card strong {
   display: block;
   margin: 8px 0 5px;
@@ -427,11 +390,9 @@ select:focus {
   font-size: 2rem;
   text-shadow: 0 0 16px rgba(255, 47, 142, 0.32);
 }
-
 .stat-card p {
   color: var(--muted);
 }
-
 .filters-panel {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -439,7 +400,6 @@ select:focus {
   padding: 18px;
   margin-bottom: 18px;
 }
-
 .filters-panel label {
   display: block;
   margin-bottom: 8px;
@@ -449,11 +409,9 @@ select:focus {
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-
 .library-section {
   padding: 20px;
 }
-
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -461,18 +419,15 @@ select:focus {
   align-items: end;
   margin-bottom: 18px;
 }
-
 .section-heading h2 {
   margin-top: 6px;
   font-size: clamp(1.7rem, 4vw, 3rem);
   line-height: 1;
 }
-
 .section-heading > p {
   color: var(--muted);
   font-weight: 900;
 }
-
 .empty-state {
   min-height: 420px;
   display: grid;
@@ -483,29 +438,24 @@ select:focus {
   padding: 28px;
   background: rgba(255, 47, 142, 0.025);
 }
-
 .empty-icon {
   font-size: 4rem;
   margin-bottom: 12px;
 }
-
 .empty-state h3 {
   font-size: 2rem;
   margin-bottom: 10px;
 }
-
 .empty-state p {
   max-width: 620px;
   color: var(--muted);
   line-height: 1.7;
 }
-
 .movie-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(150px, 1fr));
   gap: 14px;
 }
-
 .movie-card {
   overflow: hidden;
   border: 1px solid rgba(0, 229, 255, 0.18);
@@ -519,7 +469,6 @@ select:focus {
   cursor: pointer;
   transition: 0.2s ease;
 }
-
 .movie-card:hover,
 .movie-card.active {
   transform: translateY(-6px);
@@ -528,7 +477,6 @@ select:focus {
     0 0 26px rgba(255, 47, 142, 0.25),
     inset 0 0 22px rgba(255, 47, 142, 0.06);
 }
-
 .movie-poster,
 .details-poster,
 .hero-poster {
@@ -541,7 +489,6 @@ select:focus {
     linear-gradient(135deg, rgba(255, 47, 142, 0.26), rgba(0, 229, 255, 0.08)),
     #060b16;
 }
-
 .movie-poster img,
 .details-poster img,
 .hero-poster img {
@@ -557,7 +504,6 @@ select:focus {
   transform: scale(1.02);
   transition: 0.28s ease;
 }
-
 .movie-card:hover .movie-poster img,
 .movie-card.active .movie-poster img,
 .details-poster:hover img,
@@ -569,7 +515,6 @@ select:focus {
     brightness(1);
   transform: scale(1.07);
 }
-
 .movie-poster::after,
 .details-poster::after,
 .hero-poster::after {
@@ -590,14 +535,12 @@ select:focus {
   opacity: 0.62;
   transition: 0.28s ease;
 }
-
 .movie-card:hover .movie-poster::after,
 .movie-card.active .movie-poster::after,
 .details-poster:hover::after,
 .hero-poster:hover::after {
   opacity: 0.32;
 }
-
 .quality-badge,
 .details-poster span,
 .hero-poster span {
@@ -616,7 +559,6 @@ select:focus {
   font-size: 0.72rem;
   font-weight: 900;
 }
-
 .poster-title,
 .fallback-poster strong,
 .hero-poster strong,
@@ -636,32 +578,26 @@ select:focus {
     0 0 12px rgba(0, 229, 255, 0.4),
     0 0 20px rgba(255, 47, 142, 0.22);
 }
-
 .hero-poster strong {
   font-size: clamp(2rem, 4vw, 4.2rem);
 }
-
 .details-poster strong {
   font-size: 2rem;
 }
-
 .movie-info {
   display: grid;
   gap: 10px;
   padding: 13px;
 }
-
 .movie-info h3 {
   font-size: 0.98rem;
   line-height: 1.25;
 }
-
 .movie-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
 }
-
 .movie-tags span,
 .details-tags span {
   border: 1px solid rgba(0, 229, 255, 0.2);
@@ -672,7 +608,6 @@ select:focus {
   font-size: 0.72rem;
   font-weight: 900;
 }
-
 .details-panel {
   position: sticky;
   top: 18px;
@@ -680,7 +615,6 @@ select:focus {
   overflow-y: auto;
   padding: 18px;
 }
-
 .details-empty {
   min-height: 100%;
   display: grid;
@@ -688,7 +622,6 @@ select:focus {
   text-align: center;
   padding: 22px;
 }
-
 .details-icon {
   width: 150px;
   height: 185px;
@@ -701,50 +634,41 @@ select:focus {
   font-size: 4rem;
   box-shadow: inset 0 0 24px rgba(255, 47, 142, 0.06);
 }
-
 .details-empty h3 {
   color: var(--pink);
   font-size: 1.65rem;
   text-transform: uppercase;
 }
-
 .details-empty p {
   margin-top: 8px;
   color: var(--muted);
   line-height: 1.6;
 }
-
 .details-content {
   display: grid;
   gap: 16px;
 }
-
 .details-poster {
   min-height: 330px;
 }
-
 .details-content h3 {
   color: var(--cyan);
   font-size: 1.35rem;
   line-height: 1.2;
 }
-
 .details-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
 }
-
 .details-content dl {
   display: grid;
   gap: 12px;
 }
-
 .details-content dl div {
   border-bottom: 1px solid rgba(0, 229, 255, 0.12);
   padding-bottom: 10px;
 }
-
 .details-content dt {
   color: var(--pink);
   font-size: 0.75rem;
@@ -752,18 +676,15 @@ select:focus {
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-
 .details-content dd {
   margin-top: 6px;
   color: var(--text);
   line-height: 1.5;
   word-break: break-word;
 }
-
 .full-button {
   width: 100%;
 }
-
 .modal {
   position: fixed;
   inset: 0;
@@ -774,7 +695,6 @@ select:focus {
   background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(12px);
 }
-
 .modal-card {
   width: min(900px, 100%);
   border: 1px solid var(--border-pink);
@@ -787,7 +707,6 @@ select:focus {
     0 0 38px rgba(255, 47, 142, 0.16),
     var(--shadow);
 }
-
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -795,20 +714,17 @@ select:focus {
   align-items: start;
   margin-bottom: 20px;
 }
-
 .modal-header h2 {
   margin-top: 8px;
   color: var(--cyan);
   font-size: clamp(2rem, 5vw, 4rem);
   line-height: 0.95;
 }
-
 .modal-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
-
 .modal-grid article,
 .modal-path-card {
   border: 1px solid rgba(0, 229, 255, 0.16);
@@ -816,7 +732,6 @@ select:focus {
   padding: 14px;
   background: rgba(255, 255, 255, 0.035);
 }
-
 .modal-grid span,
 .modal-path-card span {
   display: block;
@@ -827,22 +742,18 @@ select:focus {
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
-
 .modal-grid strong {
   color: var(--text);
   font-size: 1.1rem;
 }
-
 .modal-path-card {
   margin-top: 10px;
 }
-
 .modal-path-card p {
   color: var(--text);
   line-height: 1.6;
   word-break: break-word;
 }
-
 .toast {
   position: fixed;
   right: 22px;
@@ -859,94 +770,73 @@ select:focus {
   box-shadow: 0 0 28px rgba(255, 47, 142, 0.16);
   transition: 0.25s ease;
 }
-
 .toast.show {
   transform: translateY(0);
   opacity: 1;
 }
-
 @media (max-width: 1400px) {
   .app-shell {
     grid-template-columns: 250px minmax(0, 1fr);
   }
-
   .details-panel {
     grid-column: 1 / -1;
     position: relative;
     top: auto;
     height: auto;
   }
-
   .details-content {
     grid-template-columns: 320px 1fr;
     align-items: start;
   }
 }
-
 @media (max-width: 1080px) {
   .app-shell {
     grid-template-columns: 1fr;
   }
-
   .sidebar {
     position: relative;
     top: auto;
     height: auto;
   }
-
   .side-nav {
     grid-template-columns: repeat(4, 1fr);
   }
-
-  .top-bar,
   .hero-panel,
   .filters-panel,
   .details-content {
     grid-template-columns: 1fr;
   }
-
   .stats-grid {
     grid-template-columns: 1fr 1fr;
   }
-
   .movie-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-
-  .top-actions {
-    justify-content: flex-start;
-  }
 }
-
 @media (max-width: 680px) {
   .app-shell {
     padding: 10px;
   }
-
   .main-content,
   .sidebar,
   .details-panel {
     padding: 14px;
   }
-
   .brand-title h2 {
     font-size: 2.4rem;
   }
-
   .side-nav,
   .stats-grid,
   .movie-grid,
-  .modal-grid {
+  .modal-grid,
+  .top-actions {
     grid-template-columns: 1fr;
   }
-
   .section-heading,
   .modal-header {
     align-items: flex-start;
     flex-direction: column;
   }
-
-  .top-actions,
   .primary-button,
   .secondary-button {
     width: 100%;
