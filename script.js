@@ -8,6 +8,7 @@ let selectedMovieId = movies[0]?.id || null;
 let activeQuality = "all";
 
 const addFolderButton = document.getElementById("addFolderButton");
+const heroAddFolderButton = document.getElementById("heroAddFolderButton");
 const exportLibraryButton = document.getElementById("exportLibraryButton");
 const clearLibraryButton = document.getElementById("clearLibraryButton");
 const folderInput = document.getElementById("folderInput");
@@ -15,76 +16,84 @@ const folderInput = document.getElementById("folderInput");
 const searchInput = document.getElementById("searchInput");
 const qualityFilter = document.getElementById("qualityFilter");
 const sortSelect = document.getElementById("sortSelect");
+const filterChips = document.querySelectorAll(".filter-chip");
 
-const navItems = document.querySelectorAll(".nav-item");
-
-const navAllCount = document.getElementById("navAllCount");
-const nav4kCount = document.getElementById("nav4kCount");
-const nav1080Count = document.getElementById("nav1080Count");
-const nav720Count = document.getElementById("nav720Count");
-const navSdCount = document.getElementById("navSdCount");
-const navUnknownCount = document.getElementById("navUnknownCount");
-
-const sourceCount = document.getElementById("sourceCount");
-const sourceList = document.getElementById("sourceList");
-const storageTotal = document.getElementById("storageTotal");
-const duplicateCount = document.getElementById("duplicateCount");
-
-const movieCount = document.getElementById("movieCount");
-const movieStorage = document.getElementById("movieStorage");
-const folderCount = document.getElementById("folderCount");
-const lastScan = document.getElementById("lastScan");
+const heroTitle = document.getElementById("heroTitle");
+const heroDescription = document.getElementById("heroDescription");
+const heroPoster = document.getElementById("heroPoster");
 const statusText = document.getElementById("statusText");
 
+const movieCount = document.getElementById("movieCount");
+const storageTotal = document.getElementById("storageTotal");
+const folderCount = document.getElementById("folderCount");
+const duplicateCount = document.getElementById("duplicateCount");
+
+const sourceList = document.getElementById("sourceList");
 const resultCount = document.getElementById("resultCount");
+const lastScanText = document.getElementById("lastScanText");
 const emptyState = document.getElementById("emptyState");
 const movieGrid = document.getElementById("movieGrid");
 
-const detailsEmpty = document.getElementById("detailsEmpty");
-const detailsContent = document.getElementById("detailsContent");
-const detailsPoster = document.getElementById("detailsPoster");
-const detailsQualityBadge = document.getElementById("detailsQualityBadge");
-const detailsPosterTitle = document.getElementById("detailsPosterTitle");
-const detailsTitle = document.getElementById("detailsTitle");
-const detailsQuality = document.getElementById("detailsQuality");
-const detailsType = document.getElementById("detailsType");
-const detailsSize = document.getElementById("detailsSize");
-const detailsFileName = document.getElementById("detailsFileName");
-const detailsSource = document.getElementById("detailsSource");
-const detailsPath = document.getElementById("detailsPath");
-const detailsScannedAt = document.getElementById("detailsScannedAt");
-const detailsDuplicateWarning = document.getElementById("detailsDuplicateWarning");
+const movieModal = document.getElementById("movieModal");
+const closeModalButton = document.getElementById("closeModalButton");
+const modalPoster = document.getElementById("modalPoster");
+const modalPosterQuality = document.getElementById("modalPosterQuality");
+const modalPosterTitle = document.getElementById("modalPosterTitle");
+const modalTitle = document.getElementById("modalTitle");
+const modalQuality = document.getElementById("modalQuality");
+const modalType = document.getElementById("modalType");
+const modalSize = document.getElementById("modalSize");
+const modalFileName = document.getElementById("modalFileName");
+const modalSource = document.getElementById("modalSource");
+const modalPath = document.getElementById("modalPath");
+const modalScannedAt = document.getElementById("modalScannedAt");
+const modalDuplicateWarning = document.getElementById("modalDuplicateWarning");
 
 const toast = document.getElementById("toast");
 
 renderApp();
 
 addFolderButton.addEventListener("click", startFolderScan);
+heroAddFolderButton.addEventListener("click", startFolderScan);
 exportLibraryButton.addEventListener("click", exportLibrary);
 clearLibraryButton.addEventListener("click", clearLibrary);
 
 folderInput.addEventListener("change", handleFallbackFolderScan);
 
 searchInput.addEventListener("input", renderMovies);
+sortSelect.addEventListener("change", renderMovies);
+
 qualityFilter.addEventListener("change", () => {
   activeQuality = qualityFilter.value;
-  updateActiveNav();
+  updateFilterChips();
   renderMovies();
 });
 
-sortSelect.addEventListener("change", renderMovies);
-
-navItems.forEach((item) => {
-  item.addEventListener("click", () => {
-    activeQuality = item.dataset.quality;
+filterChips.forEach((chip) => {
+  chip.addEventListener("click", () => {
+    activeQuality = chip.dataset.quality;
     qualityFilter.value = activeQuality;
-    updateActiveNav();
+    updateFilterChips();
     renderMovies();
   });
 });
 
+closeModalButton.addEventListener("click", closeMovieModal);
+
+movieModal.addEventListener("click", (event) => {
+  if (event.target === movieModal) {
+    closeMovieModal();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeMovieModal();
+  }
+});
+
 async function startFolderScan() {
-  showToast("Choose a movie folder from your PC or drive.");
+  showToast("Choose a movie folder from your PC or external drive.");
 
   if ("showDirectoryPicker" in window) {
     await scanWithDirectoryPicker();
@@ -98,7 +107,12 @@ async function scanWithDirectoryPicker() {
     const directoryHandle = await window.showDirectoryPicker();
     const scannedMovies = [];
 
-    await scanDirectoryHandle(directoryHandle, scannedMovies, directoryHandle.name, directoryHandle.name);
+    await scanDirectoryHandle(
+      directoryHandle,
+      scannedMovies,
+      directoryHandle.name,
+      directoryHandle.name
+    );
 
     saveScannedMovies(scannedMovies);
   } catch (error) {
@@ -109,7 +123,7 @@ async function scanWithDirectoryPicker() {
   }
 }
 
-async function scanDirectoryHandle(directoryHandle, scannedMovies, rootFolderName, currentPath) {
+async function scanDirectoryHandle(directoryHandle, scannedMovies, sourceName, currentPath) {
   for await (const entry of directoryHandle.values()) {
     const nextPath = `${currentPath}/${entry.name}`;
 
@@ -117,13 +131,13 @@ async function scanDirectoryHandle(directoryHandle, scannedMovies, rootFolderNam
       const file = await entry.getFile();
 
       if (isMovieFile(file.name)) {
-        const movie = await createMovieFromFile(file, nextPath, rootFolderName);
+        const movie = await createMovieFromFile(file, nextPath, sourceName);
         scannedMovies.push(movie);
       }
     }
 
     if (entry.kind === "directory") {
-      await scanDirectoryHandle(entry, scannedMovies, rootFolderName, nextPath);
+      await scanDirectoryHandle(entry, scannedMovies, sourceName, nextPath);
     }
   }
 }
@@ -172,19 +186,19 @@ function saveScannedMovies(scannedMovies) {
     return;
   }
 
-  const existingKeys = new Set(movies.map((movie) => getExactDuplicateKey(movie)));
+  const exactDuplicateKeys = new Set(movies.map((movie) => getExactDuplicateKey(movie)));
   const newMovies = [];
   let skippedDuplicates = 0;
 
   scannedMovies.forEach((movie) => {
     const duplicateKey = getExactDuplicateKey(movie);
 
-    if (existingKeys.has(duplicateKey)) {
+    if (exactDuplicateKeys.has(duplicateKey)) {
       skippedDuplicates += 1;
       return;
     }
 
-    existingKeys.add(duplicateKey);
+    exactDuplicateKeys.add(duplicateKey);
     newMovies.push(movie);
   });
 
@@ -194,7 +208,7 @@ function saveScannedMovies(scannedMovies) {
   }
 
   movies = [...movies, ...newMovies];
-  selectedMovieId = newMovies[0]?.id || selectedMovieId;
+  selectedMovieId = newMovies[0].id;
 
   localStorage.setItem(SCAN_KEY, new Date().toISOString());
   saveMoviesToStorage();
@@ -208,96 +222,84 @@ function saveScannedMovies(scannedMovies) {
   }
 }
 
-function clearLibrary() {
-  const confirmed = confirm("Clear your saved Cinema Library catalog?");
-
-  if (!confirmed) {
-    return;
-  }
-
-  movies = [];
-  selectedMovieId = null;
-  activeQuality = "all";
-
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(SCAN_KEY);
-
-  searchInput.value = "";
-  qualityFilter.value = "all";
-  sortSelect.value = "newest";
-
-  renderApp();
-  showToast("Library cleared.");
-}
-
 function renderApp() {
   renderStats();
-  updateActiveNav();
-  renderSourceList();
+  renderSources();
+  renderHero();
+  updateFilterChips();
   renderMovies();
-  renderDetails();
 }
 
 function renderStats() {
-  const totalBytes = movies.reduce((sum, movie) => sum + movie.sizeBytes, 0);
-  const qualityCounts = getQualityCounts();
+  const totalBytes = movies.reduce((sum, movie) => sum + Number(movie.sizeBytes || 0), 0);
   const sources = getSources();
-  const possibleDuplicates = getDuplicateMovieIds();
-
-  navAllCount.textContent = movies.length;
-  nav4kCount.textContent = qualityCounts["4K"] || 0;
-  nav1080Count.textContent = qualityCounts["1080p"] || 0;
-  nav720Count.textContent = qualityCounts["720p"] || 0;
-  navSdCount.textContent = qualityCounts.SD || 0;
-  navUnknownCount.textContent = qualityCounts.Unknown || 0;
+  const duplicateIds = getDuplicateMovieIds();
+  const savedLastScan = localStorage.getItem(SCAN_KEY);
 
   movieCount.textContent = movies.length;
-  movieStorage.textContent = formatBytes(totalBytes);
-  folderCount.textContent = sources.length;
-  sourceCount.textContent = sources.length;
-
   storageTotal.textContent = formatBytes(totalBytes);
-  duplicateCount.textContent = possibleDuplicates.size;
-
-  const savedLastScan = localStorage.getItem(SCAN_KEY);
-  lastScan.textContent = savedLastScan ? formatDate(savedLastScan) : "Never";
+  folderCount.textContent = sources.length;
+  duplicateCount.textContent = duplicateIds.size;
+  lastScanText.textContent = `Last scan: ${savedLastScan ? formatDate(savedLastScan) : "Never"}`;
 
   if (movies.length === 0) {
-    statusText.textContent = "Add a movie folder to build your library.";
+    statusText.textContent = "No folders added yet.";
   } else {
-    statusText.textContent = `${movies.length} movie file(s) saved from ${sources.length} folder(s). Your catalog will stay saved in this browser unless you clear site data.`;
+    statusText.textContent = `${movies.length} movie file(s) saved locally.`;
   }
 }
 
-function renderSourceList() {
+function renderSources() {
   const sources = getSources();
 
   sourceList.innerHTML = "";
 
   if (sources.length === 0) {
-    sourceList.innerHTML = `<p class="muted">No folders added yet.</p>`;
+    sourceList.innerHTML = `<span>No folders added yet.</span>`;
     return;
   }
 
   sources.forEach((source) => {
-    const sourceMovies = movies.filter((movie) => movie.sourceName === source);
-    const totalBytes = sourceMovies.reduce((sum, movie) => sum + movie.sizeBytes, 0);
+    const sourceMovies = movies.filter((movie) => getSourceName(movie) === source);
+    const totalBytes = sourceMovies.reduce((sum, movie) => sum + Number(movie.sizeBytes || 0), 0);
 
-    const sourceItem = document.createElement("div");
-    sourceItem.className = "source-item";
+    const pill = document.createElement("span");
+    pill.className = "source-pill";
+    pill.textContent = `${source} • ${sourceMovies.length} • ${formatBytes(totalBytes)}`;
 
-    sourceItem.innerHTML = `
-      <strong>${escapeHTML(source)}</strong>
-      <span>${sourceMovies.length} movie(s) • ${formatBytes(totalBytes)}</span>
+    sourceList.appendChild(pill);
+  });
+}
+
+function renderHero() {
+  const selectedMovie = getSelectedMovie();
+
+  if (!selectedMovie) {
+    heroTitle.textContent = "Your movies, one clean library.";
+    heroDescription.textContent =
+      "Add folders from your Windows PC or external HDDs. Cinema Library saves a local catalog, combines everything into one grid, and keeps your actual videos on your own drives.";
+
+    heroPoster.innerHTML = `
+      <span>LOCAL</span>
+      <strong>Movie Catalog</strong>
     `;
 
-    sourceList.appendChild(sourceItem);
-  });
+    return;
+  }
+
+  heroTitle.textContent = selectedMovie.title || selectedMovie.fileName;
+  heroDescription.textContent =
+    `${selectedMovie.quality} • ${selectedMovie.extension} • ${formatBytes(selectedMovie.sizeBytes)} • ${getSourceName(selectedMovie)}`;
+
+  heroPoster.innerHTML = `
+    ${selectedMovie.poster ? `<img src="${selectedMovie.poster}" alt="${escapeHTML(selectedMovie.title)} thumbnail" />` : ""}
+    <span>${escapeHTML(selectedMovie.quality)}</span>
+    <strong>${escapeHTML(getPosterTitle(selectedMovie.title || selectedMovie.fileName, 42))}</strong>
+  `;
 }
 
 function renderMovies() {
   let filteredMovies = [...movies];
-
   const searchTerm = searchInput.value.toLowerCase().trim();
   const sortValue = sortSelect.value;
   const duplicateIds = getDuplicateMovieIds();
@@ -312,7 +314,7 @@ function renderMovies() {
         ${movie.title}
         ${movie.fileName}
         ${movie.path}
-        ${movie.sourceName}
+        ${getSourceName(movie)}
         ${movie.quality}
         ${movie.extension}
       `.toLowerCase().includes(searchTerm);
@@ -327,7 +329,6 @@ function renderMovies() {
     emptyState.classList.remove("hidden");
     movieGrid.classList.add("hidden");
     resultCount.textContent = "No movies scanned yet.";
-    renderDetails();
     return;
   }
 
@@ -339,13 +340,13 @@ function renderMovies() {
   if (filteredMovies.length === 0) {
     movieGrid.innerHTML = `
       <section class="empty-state">
-        <div class="empty-icon">🔎</div>
-        <h3>No matching movies found.</h3>
-        <p>Try changing the search, quality filter, or sort option.</p>
+        <div class="empty-card">
+          <div class="empty-icon">🔎</div>
+          <h3>No matching movies found.</h3>
+          <p>Try changing your search, quality filter, or sort option.</p>
+        </div>
       </section>
     `;
-    selectedMovieId = null;
-    renderDetails();
     return;
   }
 
@@ -366,74 +367,70 @@ function renderMovies() {
     card.innerHTML = `
       <div class="movie-poster">
         ${movie.poster ? `<img src="${movie.poster}" alt="${escapeHTML(movie.title)} thumbnail" />` : ""}
-        <span class="quality-badge">${escapeHTML(movie.quality)}</span>
-        <strong class="poster-title">${escapeHTML(getPosterTitle(movie.title || movie.fileName))}</strong>
+        <span>${escapeHTML(movie.quality)}</span>
+        <strong>${escapeHTML(getPosterTitle(movie.title || movie.fileName, 30))}</strong>
       </div>
 
       <div class="movie-info">
         <h3>${escapeHTML(movie.title || movie.fileName)}</h3>
 
         <div class="movie-meta">
-          <span>${escapeHTML(movie.extension)}</span>
+          <span>${escapeHTML(movie.extension || "Unknown")}</span>
           <span>${formatBytes(movie.sizeBytes)}</span>
           ${isDuplicate ? `<span class="duplicate-chip">Duplicate?</span>` : ""}
         </div>
 
-        <p class="movie-source">${escapeHTML(movie.sourceName || "Unknown Folder")}</p>
+        <p class="movie-source">${escapeHTML(getSourceName(movie))}</p>
       </div>
     `;
 
     card.addEventListener("click", () => {
       selectedMovieId = movie.id;
+      renderHero();
       renderMovies();
-      renderDetails();
+      openMovieModal(movie.id);
     });
 
     movieGrid.appendChild(card);
   });
-
-  renderDetails();
 }
 
-function renderDetails() {
-  const selectedMovie = getSelectedMovie();
+function openMovieModal(movieId) {
+  const movie = movies.find((item) => item.id === movieId);
   const duplicateIds = getDuplicateMovieIds();
 
-  if (!selectedMovie) {
-    detailsEmpty.classList.remove("hidden");
-    detailsContent.classList.add("hidden");
+  if (!movie) {
     return;
   }
 
-  detailsEmpty.classList.add("hidden");
-  detailsContent.classList.remove("hidden");
+  selectedMovieId = movie.id;
 
-  renderPoster(detailsPoster, selectedMovie);
+  modalPoster.innerHTML = `
+    ${movie.poster ? `<img src="${movie.poster}" alt="${escapeHTML(movie.title)} thumbnail" />` : ""}
+    <span id="modalPosterQuality">${escapeHTML(movie.quality)}</span>
+    <strong id="modalPosterTitle">${escapeHTML(getPosterTitle(movie.title || movie.fileName, 34))}</strong>
+  `;
 
-  detailsQualityBadge.textContent = selectedMovie.quality;
-  detailsPosterTitle.textContent = getPosterTitle(selectedMovie.title || selectedMovie.fileName);
-  detailsTitle.textContent = selectedMovie.title || selectedMovie.fileName;
-  detailsQuality.textContent = selectedMovie.quality;
-  detailsType.textContent = selectedMovie.extension;
-  detailsSize.textContent = formatBytes(selectedMovie.sizeBytes);
-  detailsFileName.textContent = selectedMovie.fileName;
-  detailsSource.textContent = selectedMovie.sourceName || "Unknown Folder";
-  detailsPath.textContent = selectedMovie.path || "Unknown Path";
-  detailsScannedAt.textContent = formatDate(selectedMovie.scannedAt);
+  modalTitle.textContent = movie.title || movie.fileName;
+  modalQuality.textContent = movie.quality || "Unknown";
+  modalType.textContent = movie.extension || "Unknown";
+  modalSize.textContent = formatBytes(movie.sizeBytes);
+  modalFileName.textContent = movie.fileName || "Unknown";
+  modalSource.textContent = getSourceName(movie);
+  modalPath.textContent = movie.path || "Unknown";
+  modalScannedAt.textContent = formatDate(movie.scannedAt);
 
-  if (duplicateIds.has(selectedMovie.id)) {
-    detailsDuplicateWarning.classList.remove("hidden");
+  if (duplicateIds.has(movie.id)) {
+    modalDuplicateWarning.classList.remove("hidden");
   } else {
-    detailsDuplicateWarning.classList.add("hidden");
+    modalDuplicateWarning.classList.add("hidden");
   }
+
+  movieModal.classList.remove("hidden");
 }
 
-function renderPoster(container, movie) {
-  container.innerHTML = `
-    ${movie.poster ? `<img src="${movie.poster}" alt="${escapeHTML(movie.title)} thumbnail" />` : ""}
-    <span>${escapeHTML(movie.quality)}</span>
-    <strong>${escapeHTML(getPosterTitle(movie.title || movie.fileName))}</strong>
-  `;
+function closeMovieModal() {
+  movieModal.classList.add("hidden");
 }
 
 function createVideoThumbnail(file) {
@@ -464,10 +461,15 @@ function createVideoThumbnail(file) {
     }, 5000);
 
     video.addEventListener("loadedmetadata", () => {
-      const duration = Number.isFinite(video.duration) ? video.duration : 0;
-      const middleTime = duration > 2 ? duration / 2 : 0.5;
+      try {
+        const duration = Number.isFinite(video.duration) ? video.duration : 0;
+        const midPoint = duration > 2 ? duration / 2 : 0.5;
 
-      video.currentTime = middleTime;
+        video.currentTime = midPoint;
+      } catch {
+        clearTimeout(timeout);
+        finish("");
+      }
     });
 
     video.addEventListener("seeked", () => {
@@ -479,8 +481,8 @@ function createVideoThumbnail(file) {
           return;
         }
 
-        const posterWidth = 360;
-        const posterHeight = 540;
+        const posterWidth = 420;
+        const posterHeight = 630;
 
         canvas.width = posterWidth;
         canvas.height = posterHeight;
@@ -515,9 +517,7 @@ function createVideoThumbnail(file) {
           posterHeight
         );
 
-        const posterData = canvas.toDataURL("image/jpeg", 0.56);
-
-        finish(posterData);
+        finish(canvas.toDataURL("image/jpeg", 0.56));
       } catch (error) {
         console.warn("Thumbnail failed:", error);
         finish("");
@@ -542,7 +542,7 @@ function exportLibrary() {
       title: movie.title,
       fileName: movie.fileName,
       path: movie.path,
-      sourceName: movie.sourceName,
+      sourceName: getSourceName(movie),
       extension: movie.extension,
       quality: movie.quality,
       sizeBytes: movie.sizeBytes,
@@ -564,10 +564,33 @@ function exportLibrary() {
   showToast("Library exported.");
 }
 
+function clearLibrary() {
+  const confirmed = confirm("Clear your saved Cinema Library catalog?");
+
+  if (!confirmed) {
+    return;
+  }
+
+  movies = [];
+  selectedMovieId = null;
+  activeQuality = "all";
+
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(SCAN_KEY);
+
+  searchInput.value = "";
+  qualityFilter.value = "all";
+  sortSelect.value = "newest";
+
+  renderApp();
+  closeMovieModal();
+  showToast("Library cleared.");
+}
+
 function saveMoviesToStorage() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(movies));
-  } catch (error) {
+  } catch {
     const metadataOnly = movies.map((movie) => {
       return {
         ...movie,
@@ -598,10 +621,6 @@ function loadMovies() {
   } catch {
     return [];
   }
-}
-
-function getSelectedMovie() {
-  return movies.find((movie) => movie.id === selectedMovieId);
 }
 
 function isMovieFile(fileName) {
@@ -675,7 +694,7 @@ function sortMovies(movieList, sortValue) {
   }
 
   if (sortValue === "largest") {
-    return movieList.sort((a, b) => b.sizeBytes - a.sizeBytes);
+    return movieList.sort((a, b) => Number(b.sizeBytes || 0) - Number(a.sizeBytes || 0));
   }
 
   if (sortValue === "quality") {
@@ -683,25 +702,24 @@ function sortMovies(movieList, sortValue) {
   }
 
   if (sortValue === "source") {
-    return movieList.sort((a, b) => {
-      return (a.sourceName || "").localeCompare(b.sourceName || "");
-    });
+    return movieList.sort((a, b) => getSourceName(a).localeCompare(getSourceName(b)));
   }
 
   return movieList;
 }
 
-function getQualityCounts() {
-  return movies.reduce((counts, movie) => {
-    counts[movie.quality] = (counts[movie.quality] || 0) + 1;
-    return counts;
-  }, {});
-}
-
 function getSources() {
-  const sources = movies.map((movie) => movie.sourceName || "Unknown Folder");
+  const sources = movies.map((movie) => getSourceName(movie));
 
   return [...new Set(sources)].sort((a, b) => a.localeCompare(b));
+}
+
+function getSelectedMovie() {
+  return movies.find((movie) => movie.id === selectedMovieId);
+}
+
+function getSourceName(movie) {
+  return movie.sourceName || movie.folderName || "Unknown Folder";
 }
 
 function getExactDuplicateKey(movie) {
@@ -709,20 +727,20 @@ function getExactDuplicateKey(movie) {
 }
 
 function getDuplicateMovieIds() {
-  const titleGroups = new Map();
+  const groups = new Map();
   const duplicateIds = new Set();
 
   movies.forEach((movie) => {
-    const titleKey = normalizeTitle(movie.title || movie.fileName);
+    const key = normalizeTitle(movie.title || movie.fileName);
 
-    if (!titleGroups.has(titleKey)) {
-      titleGroups.set(titleKey, []);
+    if (!groups.has(key)) {
+      groups.set(key, []);
     }
 
-    titleGroups.get(titleKey).push(movie);
+    groups.get(key).push(movie);
   });
 
-  titleGroups.forEach((group) => {
+  groups.forEach((group) => {
     if (group.length > 1) {
       group.forEach((movie) => duplicateIds.add(movie.id));
     }
@@ -739,9 +757,9 @@ function normalizeTitle(title) {
     .trim();
 }
 
-function updateActiveNav() {
-  navItems.forEach((item) => {
-    item.classList.toggle("active", item.dataset.quality === activeQuality);
+function updateFilterChips() {
+  filterChips.forEach((chip) => {
+    chip.classList.toggle("active", chip.dataset.quality === activeQuality);
   });
 }
 
@@ -775,12 +793,12 @@ function formatDate(dateValue) {
   });
 }
 
-function getPosterTitle(title) {
+function getPosterTitle(title, maxLength = 32) {
   if (!title) {
     return "Movie";
   }
 
-  return title.length > 32 ? `${title.slice(0, 32)}...` : title;
+  return title.length > maxLength ? `${title.slice(0, maxLength)}...` : title;
 }
 
 function createId() {
