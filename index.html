@@ -6,15 +6,13 @@
 
   <title>Cinema Library | Local Movie Catalog</title>
 
-  <link rel="stylesheet" href="style.css?v=apple2" />
+  <link rel="stylesheet" href="./style.css?v=cinema-preview-layout-1" />
 </head>
 <body>
-  <div class="background-glow"></div>
-
-  <div class="app-container">
-    <header class="app-header">
+  <div class="app-page">
+    <header class="top-shell">
       <div class="brand">
-        <div class="brand-mark">🎬</div>
+        <div class="brand-icon">🎞️</div>
 
         <div>
           <h1>Cinema Library</h1>
@@ -22,7 +20,8 @@
         </div>
       </div>
 
-      <div class="header-search">
+      <div class="search-box">
+        <span>⌕</span>
         <input id="searchInput" type="text" placeholder="Search your movies..." />
       </div>
 
@@ -35,62 +34,105 @@
           Export
         </button>
 
-        <button id="clearLibraryButton" class="secondary-button danger-button" type="button">
+        <button id="clearLibraryButton" class="secondary-button" type="button">
           Clear
         </button>
       </div>
     </header>
 
     <main>
-      <section class="hero-card">
+      <section class="hero-panel">
         <div class="hero-copy">
           <p class="eyebrow">Local Cinema Mode</p>
 
-          <h2 id="heroTitle">Your movies, one clean library.</h2>
+          <h2>Your movies, one clean library.</h2>
 
-          <p id="heroDescription">
-            Add folders from your Windows PC or external HDDs. Cinema Library saves a local catalog,
-            combines everything into one grid, and keeps your actual videos on your own drives.
+          <p>
+            Add folders from your Windows PC or external HDDs and combine them into one saved local catalog.
+            Fast, private, and always under your control.
           </p>
 
-          <div class="hero-actions">
-            <button id="heroAddFolderButton" class="primary-button" type="button">
-              Add Movie Folder
-            </button>
+          <button id="heroAddFolderButton" class="primary-button hero-button" type="button">
+            Add Movie Folder
+          </button>
 
-            <span id="statusText">No folders added yet.</span>
+          <div class="scan-line">
+            <span></span>
+            <p id="statusText">No folders added yet.</p>
           </div>
         </div>
 
-        <div id="heroPoster" class="hero-poster">
-          <span>LOCAL</span>
-          <strong>Movie Catalog</strong>
+        <div class="preview-card">
+          <video id="previewVideo" muted playsinline></video>
+
+          <div id="previewFallback" class="preview-fallback">
+            <span>LOCAL</span>
+            <strong>Preview Reel</strong>
+          </div>
+
+          <button id="mutePreviewButton" class="mute-button" type="button" aria-label="Toggle preview sound">
+            🔇
+          </button>
+
+          <div class="preview-overlay">
+            <div>
+              <h3 id="previewTitle">Preview Reel</h3>
+              <p id="previewSubtitle">Playing random clips from your library</p>
+            </div>
+
+            <div class="preview-controls">
+              <span id="previewPlayIcon">Ⅱ</span>
+
+              <div class="progress-track">
+                <div id="previewProgress" class="progress-bar"></div>
+              </div>
+
+              <span id="previewTime">00:00 / 01:00</span>
+              <span class="fullscreen-icon">⛶</span>
+            </div>
+          </div>
         </div>
       </section>
 
       <section class="stats-grid">
         <article class="stat-card">
-          <span>Movies</span>
-          <strong id="movieCount">0</strong>
+          <div class="stat-icon blue">🎬</div>
+
+          <div>
+            <span>Movies</span>
+            <strong id="movieCount">0</strong>
+          </div>
         </article>
 
         <article class="stat-card">
-          <span>Storage</span>
-          <strong id="storageTotal">0 GB</strong>
+          <div class="stat-icon purple">▰</div>
+
+          <div>
+            <span>Storage</span>
+            <strong id="storageTotal">0 GB</strong>
+          </div>
         </article>
 
         <article class="stat-card">
-          <span>Folders</span>
-          <strong id="folderCount">0</strong>
+          <div class="stat-icon green">▣</div>
+
+          <div>
+            <span>Folders</span>
+            <strong id="folderCount">0</strong>
+          </div>
         </article>
 
         <article class="stat-card">
-          <span>Duplicates</span>
-          <strong id="duplicateCount">0</strong>
+          <div class="stat-icon orange">▢</div>
+
+          <div>
+            <span>Duplicates</span>
+            <strong id="duplicateCount">0</strong>
+          </div>
         </article>
       </section>
 
-      <section class="library-controls">
+      <section class="filter-bar">
         <div class="filter-chips">
           <button class="filter-chip active" type="button" data-quality="all">All</button>
           <button class="filter-chip" type="button" data-quality="4K">4K</button>
@@ -100,8 +142,8 @@
           <button class="filter-chip" type="button" data-quality="Unknown">Unknown</button>
         </div>
 
-        <div class="sort-wrap">
-          <select id="qualityFilter">
+        <div class="select-row">
+          <select id="qualityFilter" aria-label="Filter by quality">
             <option value="all">All Qualities</option>
             <option value="4K">4K</option>
             <option value="1080p">1080p</option>
@@ -110,7 +152,7 @@
             <option value="Unknown">Unknown</option>
           </select>
 
-          <select id="sortSelect">
+          <select id="sortSelect" aria-label="Sort movies">
             <option value="newest">Recently Added</option>
             <option value="name">Name A-Z</option>
             <option value="largest">Largest File</option>
@@ -120,10 +162,10 @@
         </div>
       </section>
 
-      <section class="source-strip">
-        <div>
-          <p class="eyebrow">Storage Folders</p>
-          <h3>Added Sources</h3>
+      <section class="source-panel">
+        <div class="source-title">
+          <span>▭</span>
+          <h3>Storage Folders</h3>
         </div>
 
         <div id="sourceList" class="source-list">
@@ -131,29 +173,29 @@
         </div>
       </section>
 
-      <section class="library-heading">
-        <div>
-          <h3>Movie Library</h3>
-          <p id="resultCount">No movies scanned yet.</p>
+      <section class="library-panel">
+        <div class="library-heading">
+          <div>
+            <h3>Movie Library</h3>
+            <p id="resultCount">No movies scanned yet.</p>
+          </div>
+
+          <p id="lastScanText">Last scan: Never</p>
         </div>
 
-        <p id="lastScanText">Last scan: Never</p>
-      </section>
-
-      <section id="emptyState" class="empty-state">
-        <div class="empty-card">
+        <section id="emptyState" class="empty-state">
           <div class="empty-icon">🍿</div>
 
           <h3>No movie folders added yet.</h3>
 
           <p>
-            Click <strong>Add Movie Folder</strong>, choose a folder from your PC or external drive,
-            and your real movie files will appear here.
+            Click <strong>Add Movie Folder</strong> and choose a folder from your PC or external drive.
+            Your real movie files will appear here.
           </p>
-        </div>
-      </section>
+        </section>
 
-      <section id="movieGrid" class="movie-grid"></section>
+        <section id="movieGrid" class="movie-grid"></section>
+      </section>
     </main>
   </div>
 
@@ -162,11 +204,11 @@
       <button id="closeModalButton" class="modal-close" type="button">×</button>
 
       <div id="modalPoster" class="modal-poster">
-        <span id="modalPosterQuality">Unknown</span>
-        <strong id="modalPosterTitle">Movie</strong>
+        <span>LOCAL</span>
+        <strong>Movie</strong>
       </div>
 
-      <div class="modal-content">
+      <div class="modal-info">
         <p class="eyebrow">Movie Details</p>
 
         <h2 id="modalTitle">Movie Title</h2>
@@ -210,6 +252,6 @@
 
   <div id="toast" class="toast"></div>
 
-  <script src="script.js?v=apple2"></script>
+  <script src="./script.js?v=cinema-preview-layout-1"></script>
 </body>
 </html>
