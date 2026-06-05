@@ -9,217 +9,201 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
+  <div class="background-glow"></div>
+
+  <div class="app-container">
+    <header class="app-header">
       <div class="brand">
-        <div class="brand-icon"></div>
+        <div class="brand-mark">🎬</div>
 
         <div>
           <h1>Cinema Library</h1>
-          <p>Local movie catalog</p>
+          <p>Saved local movie catalog</p>
         </div>
       </div>
 
-      <nav class="sidebar-nav">
-        <button class="nav-item active" type="button" data-quality="all">
-          <span>All Movies</span>
-          <strong id="navAllCount">0</strong>
+      <div class="header-search">
+        <input id="searchInput" type="text" placeholder="Search your movies..." />
+      </div>
+
+      <div class="header-actions">
+        <button id="addFolderButton" class="primary-button" type="button">
+          Add Movie Folder
         </button>
 
-        <button class="nav-item" type="button" data-quality="4K">
-          <span>4K</span>
-          <strong id="nav4kCount">0</strong>
+        <button id="exportLibraryButton" class="secondary-button" type="button">
+          Export
         </button>
 
-        <button class="nav-item" type="button" data-quality="1080p">
-          <span>1080p</span>
-          <strong id="nav1080Count">0</strong>
+        <button id="clearLibraryButton" class="secondary-button danger-button" type="button">
+          Clear
         </button>
+      </div>
+    </header>
 
-        <button class="nav-item" type="button" data-quality="720p">
-          <span>720p</span>
-          <strong id="nav720Count">0</strong>
-        </button>
+    <main>
+      <section class="hero-card">
+        <div class="hero-copy">
+          <p class="eyebrow">Local Cinema Mode</p>
 
-        <button class="nav-item" type="button" data-quality="SD">
-          <span>SD</span>
-          <strong id="navSdCount">0</strong>
-        </button>
+          <h2 id="heroTitle">Your movies, one clean library.</h2>
 
-        <button class="nav-item" type="button" data-quality="Unknown">
-          <span>Unknown</span>
-          <strong id="navUnknownCount">0</strong>
-        </button>
-      </nav>
+          <p id="heroDescription">
+            Add folders from your Windows PC or external HDDs. Cinema Library saves a local catalog,
+            combines everything into one grid, and keeps your actual videos on your own drives.
+          </p>
 
-      <section class="sidebar-section">
-        <div class="section-title-row">
-          <h2>Storage Folders</h2>
-          <span id="sourceCount">0</span>
+          <div class="hero-actions">
+            <button id="heroAddFolderButton" class="primary-button" type="button">
+              Add Movie Folder
+            </button>
+
+            <span id="statusText">No folders added yet.</span>
+          </div>
         </div>
 
-        <div id="sourceList" class="source-list">
-          <p class="muted">No folders added yet.</p>
+        <div id="heroPoster" class="hero-poster">
+          <span>LOCAL</span>
+          <strong>Movie Catalog</strong>
         </div>
       </section>
 
-      <section class="sidebar-section">
-        <div class="mini-stats">
-          <div>
-            <span>Total Size</span>
-            <strong id="storageTotal">0 GB</strong>
-          </div>
-
-          <div>
-            <span>Duplicates</span>
-            <strong id="duplicateCount">0</strong>
-          </div>
-        </div>
-      </section>
-    </aside>
-
-    <main class="main-content">
-      <header class="top-bar">
-        <div>
-          <p class="eyebrow">Saved Local Catalog</p>
-          <h2>All Movies</h2>
-          <p id="statusText">Add a movie folder to build your library.</p>
-        </div>
-
-        <div class="top-actions">
-          <button id="addFolderButton" class="primary-button" type="button">
-            Add Movie Folder
-          </button>
-
-          <button id="exportLibraryButton" class="secondary-button" type="button">
-            Export
-          </button>
-
-          <button id="clearLibraryButton" class="secondary-button danger-button" type="button">
-            Clear
-          </button>
-        </div>
-      </header>
-
-      <section class="overview-grid">
-        <article class="overview-card">
+      <section class="stats-grid">
+        <article class="stat-card">
           <span>Movies</span>
           <strong id="movieCount">0</strong>
         </article>
 
-        <article class="overview-card">
+        <article class="stat-card">
           <span>Storage</span>
-          <strong id="movieStorage">0 GB</strong>
+          <strong id="storageTotal">0 GB</strong>
         </article>
 
-        <article class="overview-card">
+        <article class="stat-card">
           <span>Folders</span>
           <strong id="folderCount">0</strong>
         </article>
 
-        <article class="overview-card">
-          <span>Last Scan</span>
-          <strong id="lastScan">Never</strong>
+        <article class="stat-card">
+          <span>Duplicates</span>
+          <strong id="duplicateCount">0</strong>
         </article>
       </section>
 
-      <section class="controls-panel">
-        <div class="search-wrap">
-          <input id="searchInput" type="text" placeholder="Search movies, folders, files..." />
+      <section class="library-controls">
+        <div class="filter-chips">
+          <button class="filter-chip active" type="button" data-quality="all">All</button>
+          <button class="filter-chip" type="button" data-quality="4K">4K</button>
+          <button class="filter-chip" type="button" data-quality="1080p">1080p</button>
+          <button class="filter-chip" type="button" data-quality="720p">720p</button>
+          <button class="filter-chip" type="button" data-quality="SD">SD</button>
+          <button class="filter-chip" type="button" data-quality="Unknown">Unknown</button>
         </div>
 
-        <select id="qualityFilter" aria-label="Filter by quality">
-          <option value="all">All Qualities</option>
-          <option value="4K">4K</option>
-          <option value="1080p">1080p</option>
-          <option value="720p">720p</option>
-          <option value="SD">SD</option>
-          <option value="Unknown">Unknown</option>
-        </select>
+        <div class="sort-wrap">
+          <select id="qualityFilter">
+            <option value="all">All Qualities</option>
+            <option value="4K">4K</option>
+            <option value="1080p">1080p</option>
+            <option value="720p">720p</option>
+            <option value="SD">SD</option>
+            <option value="Unknown">Unknown</option>
+          </select>
 
-        <select id="sortSelect" aria-label="Sort movies">
-          <option value="newest">Recently Added</option>
-          <option value="name">Name A-Z</option>
-          <option value="largest">Largest File</option>
-          <option value="quality">Highest Quality</option>
-          <option value="source">Storage Folder</option>
-        </select>
+          <select id="sortSelect">
+            <option value="newest">Recently Added</option>
+            <option value="name">Name A-Z</option>
+            <option value="largest">Largest File</option>
+            <option value="quality">Highest Quality</option>
+            <option value="source">Storage Folder</option>
+          </select>
+        </div>
       </section>
 
-      <section class="library-header">
+      <section class="source-strip">
+        <div>
+          <p class="eyebrow">Storage Folders</p>
+          <h3>Added Sources</h3>
+        </div>
+
+        <div id="sourceList" class="source-list">
+          <span>No folders added yet.</span>
+        </div>
+      </section>
+
+      <section class="library-heading">
         <div>
           <h3>Movie Library</h3>
           <p id="resultCount">No movies scanned yet.</p>
         </div>
+
+        <p id="lastScanText">Last scan: Never</p>
       </section>
 
       <section id="emptyState" class="empty-state">
-        <div class="empty-icon">🎬</div>
+        <div class="empty-card">
+          <div class="empty-icon">🍿</div>
 
-        <h3>No movie folders added yet.</h3>
+          <h3>No movie folders added yet.</h3>
 
-        <p>
-          Click <strong>Add Movie Folder</strong> and choose a folder from your Windows PC or external HDD.
-          You can add multiple folders and they will appear together in one saved catalog.
-        </p>
+          <p>
+            Click <strong>Add Movie Folder</strong>, choose a folder from your PC or external drive,
+            and your real movie files will appear here.
+          </p>
+        </div>
       </section>
 
       <section id="movieGrid" class="movie-grid"></section>
     </main>
+  </div>
 
-    <aside class="details-panel">
-      <div id="detailsEmpty" class="details-empty">
-        <div class="details-placeholder">🎥</div>
+  <div id="movieModal" class="modal hidden">
+    <div class="modal-card">
+      <button id="closeModalButton" class="modal-close" type="button">×</button>
 
-        <h3>No Movie Selected</h3>
-
-        <p>Select a movie to view its file details.</p>
+      <div id="modalPoster" class="modal-poster">
+        <span id="modalPosterQuality">Unknown</span>
+        <strong id="modalPosterTitle">Movie</strong>
       </div>
 
-      <div id="detailsContent" class="details-content hidden">
-        <div id="detailsPoster" class="details-poster">
-          <span id="detailsQualityBadge">Unknown</span>
-          <strong id="detailsPosterTitle">Movie</strong>
-        </div>
+      <div class="modal-content">
+        <p class="eyebrow">Movie Details</p>
 
-        <div class="details-heading">
-          <p class="eyebrow">Selected Movie</p>
-          <h3 id="detailsTitle">Movie Title</h3>
-        </div>
+        <h2 id="modalTitle">Movie Title</h2>
 
-        <div class="details-tags">
-          <span id="detailsQuality">Unknown</span>
-          <span id="detailsType">MP4</span>
-          <span id="detailsSize">0 GB</span>
+        <div class="modal-tags">
+          <span id="modalQuality">Unknown</span>
+          <span id="modalType">MP4</span>
+          <span id="modalSize">0 GB</span>
         </div>
 
         <dl class="details-list">
           <div>
             <dt>File Name</dt>
-            <dd id="detailsFileName">None</dd>
+            <dd id="modalFileName">None</dd>
           </div>
 
           <div>
             <dt>Storage Folder</dt>
-            <dd id="detailsSource">None</dd>
+            <dd id="modalSource">None</dd>
           </div>
 
           <div>
             <dt>Detected Path</dt>
-            <dd id="detailsPath">None</dd>
+            <dd id="modalPath">None</dd>
           </div>
 
           <div>
             <dt>Scanned</dt>
-            <dd id="detailsScannedAt">None</dd>
+            <dd id="modalScannedAt">Never</dd>
           </div>
         </dl>
 
-        <p id="detailsDuplicateWarning" class="duplicate-warning hidden">
+        <p id="modalDuplicateWarning" class="duplicate-warning hidden">
           Possible duplicate detected.
         </p>
       </div>
-    </aside>
+    </div>
   </div>
 
   <input id="folderInput" type="file" webkitdirectory directory multiple hidden />
