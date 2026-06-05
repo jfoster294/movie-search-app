@@ -1,16 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- 
+    BASIC PAGE SETUP
+    This tells the browser what language/character set to use
+    and makes the app scale correctly on desktop, tablet, and phone.
+  -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- 
+    BROWSER TAB TITLE
+    This is what appears in the browser tab.
+    You can change this text safely.
+  -->
   <title>Cinema Library | Local Movie Catalog</title>
 
-  <link rel="stylesheet" href="./style.css?v=cinema-preview-layout-1" />
+  <!-- 
+    CSS FILE CONNECTION
+    This loads your style.css file.
+    The ?v=annotated-1 part helps force GitHub Pages/browser to load the newest CSS.
+  -->
+  <link rel="stylesheet" href="./style.css?v=annotated-1" />
 </head>
+
 <body>
+  <!-- 
+    MAIN APP WRAPPER
+    Everything visible on the page lives inside app-page.
+    Do not rename this class unless you also update the CSS.
+  -->
   <div class="app-page">
+
+    <!-- =========================================================
+      TOP HEADER
+      This is the top bar from the mockup:
+      left logo/title, center search, right buttons.
+    ========================================================== -->
     <header class="top-shell">
+
+      <!-- 
+        BRAND AREA
+        Safe to change the icon, title, and subtitle text.
+      -->
       <div class="brand">
         <div class="brand-icon">🎞️</div>
 
@@ -20,11 +52,25 @@
         </div>
       </div>
 
+      <!-- 
+        SEARCH BAR
+        DO NOT rename id="searchInput"
+        The JavaScript uses this ID to search the movie catalog.
+      -->
       <div class="search-box">
         <span>⌕</span>
         <input id="searchInput" type="text" placeholder="Search your movies..." />
       </div>
 
+      <!-- 
+        HEADER ACTION BUTTONS
+        DO NOT rename these IDs:
+        addFolderButton
+        exportLibraryButton
+        clearLibraryButton
+
+        JavaScript uses them to scan folders, export the catalog, and clear the library.
+      -->
       <div class="header-actions">
         <button id="addFolderButton" class="primary-button" type="button">
           Add Movie Folder
@@ -40,12 +86,126 @@
       </div>
     </header>
 
+    <!-- 
+      MAIN CONTENT
+      This contains the hero preview area, stats, filters, source folders, and movie grid.
+    -->
     <main>
 
+      <!-- =========================================================
+        HERO SECTION
+        This is the big top area from the mockup.
+        Left side = title/copy/button/status.
+        Right side = movie preview reel.
+      ========================================================== -->
+      <section class="hero-panel">
+
+        <!-- 
+          HERO TEXT AREA
+          You can safely change the h2 and paragraph text.
+        -->
+        <div class="hero-copy">
+          <p class="eyebrow">Local Cinema Mode</p>
+
+          <h2>Your movies, one clean library.</h2>
+
+          <p>
+            Add folders from your Windows PC or external HDDs and combine them into one saved local catalog.
+            Fast, private, and always under your control.
+          </p>
+
+          <!-- 
+            SECOND ADD FOLDER BUTTON
+            This is the big hero button.
+            DO NOT rename id="heroAddFolderButton"
+          -->
+          <button id="heroAddFolderButton" class="primary-button hero-button" type="button">
+            Add Movie Folder
+          </button>
+
+          <!-- 
+            STATUS LINE
+            DO NOT rename id="statusText"
+            JavaScript updates this with scan status.
+          -->
+          <div class="scan-line">
+            <span></span>
+            <p id="statusText">No folders added yet.</p>
+          </div>
+        </div>
+
+        <!-- 
+          HERO PREVIEW CARD
+          This is the big video preview area on the right.
+          It shows a fallback image before videos are scanned.
+          After scanning, JavaScript can play random 1-minute muted previews.
+        -->
+        <div class="preview-card">
+
+          <!-- 
+            VIDEO PREVIEW
+            DO NOT rename id="previewVideo"
+            JavaScript uses this to play random local movie previews.
+          -->
+          <video id="previewVideo" muted playsinline></video>
+
+          <!-- 
+            FALLBACK PREVIEW
+            This shows when no video preview is available.
+            Safe to change the text LOCAL / Preview Reel.
+          -->
+          <div id="previewFallback" class="preview-fallback">
+            <span>LOCAL</span>
+            <strong>Preview Reel</strong>
+          </div>
+
+          <!-- 
+            MUTE BUTTON
+            DO NOT rename id="mutePreviewButton"
+            JavaScript uses this to toggle sound on/off.
+          -->
+          <button id="mutePreviewButton" class="mute-button" type="button" aria-label="Toggle preview sound">
+            🔇
+          </button>
+
+          <!-- 
+            PREVIEW OVERLAY
+            This is the lower text and progress bar shown over the preview video.
+          -->
+          <div class="preview-overlay">
+            <div>
+              <!-- DO NOT rename these IDs. JavaScript updates them. -->
+              <h3 id="previewTitle">Preview Reel</h3>
+              <p id="previewSubtitle">Playing random clips from your library</p>
+            </div>
+
+            <!-- 
+              VIDEO-LIKE CONTROLS
+              These are visual controls for the 1-minute preview reel.
+            -->
+            <div class="preview-controls">
+              <span id="previewPlayIcon">Ⅱ</span>
+
+              <div class="progress-track">
+                <div id="previewProgress" class="progress-bar"></div>
+              </div>
+
+              <span id="previewTime">00:00 / 01:00</span>
+              <span class="fullscreen-icon">⛶</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+        STATS ROW
+        These four cards show the main library numbers.
+        JavaScript updates the number values.
+      ========================================================== -->
       <section class="stats-grid">
+
         <article class="stat-card">
           <div class="stat-icon blue">🎬</div>
-
           <div>
             <span>Movies</span>
             <strong id="movieCount">0</strong>
@@ -54,7 +214,6 @@
 
         <article class="stat-card">
           <div class="stat-icon purple">▰</div>
-
           <div>
             <span>Storage</span>
             <strong id="storageTotal">0 GB</strong>
@@ -63,7 +222,6 @@
 
         <article class="stat-card">
           <div class="stat-icon green">▣</div>
-
           <div>
             <span>Folders</span>
             <strong id="folderCount">0</strong>
@@ -72,7 +230,6 @@
 
         <article class="stat-card">
           <div class="stat-icon orange">▢</div>
-
           <div>
             <span>Duplicates</span>
             <strong id="duplicateCount">0</strong>
@@ -80,7 +237,17 @@
         </article>
       </section>
 
+      <!-- =========================================================
+        FILTER BAR
+        This controls quick filtering and sorting.
+      ========================================================== -->
       <section class="filter-bar">
+
+        <!-- 
+          QUALITY FILTER CHIPS
+          DO NOT remove data-quality values.
+          JavaScript uses them to filter movie quality.
+        -->
         <div class="filter-chips">
           <button class="filter-chip active" type="button" data-quality="all">All</button>
           <button class="filter-chip" type="button" data-quality="4K">4K</button>
@@ -90,6 +257,12 @@
           <button class="filter-chip" type="button" data-quality="Unknown">Unknown</button>
         </div>
 
+        <!-- 
+          DROPDOWN FILTERS
+          DO NOT rename:
+          qualityFilter
+          sortSelect
+        -->
         <div class="select-row">
           <select id="qualityFilter" aria-label="Filter by quality">
             <option value="all">All Qualities</option>
@@ -110,27 +283,46 @@
         </div>
       </section>
 
+      <!-- =========================================================
+        STORAGE FOLDERS BAR
+        This shows every folder/HDD source you added.
+        JavaScript fills sourceList automatically.
+      ========================================================== -->
       <section class="source-panel">
         <div class="source-title">
           <span>▭</span>
           <h3>Storage Folders</h3>
         </div>
 
+        <!-- DO NOT rename id="sourceList" -->
         <div id="sourceList" class="source-list">
           <span>No folders added yet.</span>
         </div>
       </section>
 
+      <!-- =========================================================
+        MOVIE LIBRARY SECTION
+        This is the movie poster grid area.
+      ========================================================== -->
       <section class="library-panel">
+
         <div class="library-heading">
           <div>
             <h3>Movie Library</h3>
+
+            <!-- DO NOT rename id="resultCount" -->
             <p id="resultCount">No movies scanned yet.</p>
           </div>
 
+          <!-- DO NOT rename id="lastScanText" -->
           <p id="lastScanText">Last scan: Never</p>
         </div>
 
+        <!-- 
+          EMPTY STATE
+          This shows before any real folders are scanned.
+          JavaScript hides it after movies are added.
+        -->
         <section id="emptyState" class="empty-state">
           <div class="empty-icon">🍿</div>
 
@@ -142,15 +334,30 @@
           </p>
         </section>
 
+        <!-- 
+          MOVIE GRID
+          DO NOT rename id="movieGrid"
+          JavaScript creates the movie cards inside this section.
+        -->
         <section id="movieGrid" class="movie-grid"></section>
       </section>
     </main>
   </div>
 
+  <!-- =========================================================
+    MOVIE DETAILS MODAL
+    This opens when you click a movie card.
+  ========================================================== -->
   <div id="movieModal" class="modal hidden">
     <div class="modal-card">
+
+      <!-- DO NOT rename id="closeModalButton" -->
       <button id="closeModalButton" class="modal-close" type="button">×</button>
 
+      <!-- 
+        MODAL POSTER
+        JavaScript fills this with the selected movie thumbnail.
+      -->
       <div id="modalPoster" class="modal-poster">
         <span>LOCAL</span>
         <strong>Movie</strong>
@@ -196,10 +403,24 @@
     </div>
   </div>
 
+  <!-- =========================================================
+    HIDDEN FOLDER INPUT
+    This is the backup folder scanner for browsers that do not support showDirectoryPicker.
+    DO NOT rename id="folderInput"
+  ========================================================== -->
   <input id="folderInput" type="file" webkitdirectory directory multiple hidden />
 
+  <!-- 
+    TOAST MESSAGE
+    This shows small temporary messages at the bottom-right.
+    DO NOT rename id="toast"
+  -->
   <div id="toast" class="toast"></div>
 
-  <script src="./script.js?v=cinema-preview-layout-1"></script>
+  <!-- 
+    JAVASCRIPT FILE CONNECTION
+    The ?v=annotated-1 helps force the browser to load your newest script.
+  -->
+  <script src="./script.js?v=annotated-1"></script>
 </body>
 </html>
