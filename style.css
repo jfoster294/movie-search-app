@@ -1,17 +1,3 @@
-body::before {
-  content: "NEW APPLE STYLE CSS LOADED";
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 99999;
-  background: red;
-  color: white;
-  padding: 12px 18px;
-  border-radius: 999px;
-  font-weight: bold;
-}
-
-
 * {
   box-sizing: border-box;
   margin: 0;
