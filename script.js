@@ -1,12 +1,83 @@
+/* =========================================================
+   CINEMA LIBRARY — SCRIPT.JS
+
+   WHAT THIS FILE DOES:
+   This file controls all app behavior:
+   - scanning movie folders
+   - saving the local catalog
+   - creating movie cards
+   - search/filter/sort
+   - duplicate detection
+   - mid-video thumbnails
+   - random 1-minute preview reel
+   - movie details modal
+   - export and clear buttons
+
+   IMPORTANT:
+   This browser app does NOT upload your movies anywhere.
+   It only reads files that you manually select.
+========================================================= */
+
+
+/* =========================================================
+   1. STORAGE KEYS
+
+   These names are used in localStorage.
+
+   localStorage saves the movie catalog in your browser.
+   It does NOT save the actual movie files.
+========================================================= */
+
 const STORAGE_KEY = "cinemaLibraryMovies";
 const SCAN_KEY = "cinemaLibraryLastScan";
+
+
+/* =========================================================
+   2. BASIC APP SETTINGS
+
+   supportedExtensions:
+   These are the video file types the app will scan.
+
+   PREVIEW_CLIP_SECONDS:
+   This controls how long the hero preview reel plays each movie.
+   Change 60 to 30 if you want 30-second previews.
+========================================================= */
 
 const supportedExtensions = [".mp4", ".mkv", ".mov", ".avi", ".webm", ".m4v"];
 const PREVIEW_CLIP_SECONDS = 60;
 
+
+/* =========================================================
+   3. APP STATE
+
+   movies:
+   The saved movie catalog loaded from browser storage.
+
+   selectedMovieId:
+   The movie currently selected.
+
+   activeQuality:
+   The active quality filter: all, 4K, 1080p, etc.
+========================================================= */
+
 let movies = loadMovies();
 let selectedMovieId = movies[0]?.id || null;
 let activeQuality = "all";
+
+
+/* =========================================================
+   4. PREVIEW REEL STATE
+
+   sessionVideoUrls:
+   Stores temporary video URLs for the current browser session.
+
+   IMPORTANT:
+   These temporary video URLs disappear after refresh/reopen.
+   That is normal browser security.
+
+   failedPreviewIds:
+   Keeps track of files the browser failed to preview.
+========================================================= */
 
 const sessionVideoUrls = new Map();
 const failedPreviewIds = new Set();
@@ -18,32 +89,45 @@ let previewEndTime = PREVIEW_CLIP_SECONDS;
 let previewProgressTimer = null;
 let previewSwitchTimer = null;
 
+
+/* =========================================================
+   5. HTML ELEMENT CONNECTIONS
+
+   These lines connect JavaScript to the IDs in index.html.
+
+   DO NOT rename these IDs in index.html unless you update them here too.
+========================================================= */
+
+/* Buttons */
 const addFolderButton = document.getElementById("addFolderButton");
 const heroAddFolderButton = document.getElementById("heroAddFolderButton");
 const exportLibraryButton = document.getElementById("exportLibraryButton");
 const clearLibraryButton = document.getElementById("clearLibraryButton");
 const folderInput = document.getElementById("folderInput");
 
+/* Search, filter, and sort */
 const searchInput = document.getElementById("searchInput");
 const qualityFilter = document.getElementById("qualityFilter");
 const sortSelect = document.getElementById("sortSelect");
 const filterChips = document.querySelectorAll(".filter-chip");
 
+/* Stats and status text */
 const statusText = document.getElementById("statusText");
 const movieCount = document.getElementById("movieCount");
 const storageTotal = document.getElementById("storageTotal");
 const folderCount = document.getElementById("folderCount");
 const duplicateCount = document.getElementById("duplicateCount");
 
+/* Library sections */
 const sourceList = document.getElementById("sourceList");
 const resultCount = document.getElementById("resultCount");
 const lastScanText = document.getElementById("lastScanText");
 const emptyState = document.getElementById("emptyState");
 const movieGrid = document.getElementById("movieGrid");
 
+/* Preview reel */
 const previewVideo = document.getElementById("previewVideo");
 const previewCard = previewVideo.closest(".preview-card");
-const previewFallback = document.getElementById("previewFallback");
 const mutePreviewButton = document.getElementById("mutePreviewButton");
 const previewTitle = document.getElementById("previewTitle");
 const previewSubtitle = document.getElementById("previewSubtitle");
@@ -51,6 +135,7 @@ const previewPlayIcon = document.getElementById("previewPlayIcon");
 const previewProgress = document.getElementById("previewProgress");
 const previewTime = document.getElementById("previewTime");
 
+/* Movie details modal */
 const movieModal = document.getElementById("movieModal");
 const closeModalButton = document.getElementById("closeModalButton");
 const modalPoster = document.getElementById("modalPoster");
@@ -64,17 +149,47 @@ const modalPath = document.getElementById("modalPath");
 const modalScannedAt = document.getElementById("modalScannedAt");
 const modalDuplicateWarning = document.getElementById("modalDuplicateWarning");
 
+/* Toast popup */
 const toast = document.getElementById("toast");
+
+
+/* =========================================================
+   6. INITIAL APP STARTUP
+
+   renderApp():
+   Draws the saved catalog on the page.
+
+   startPreviewReel():
+   Starts the preview reel if temporary local video URLs exist.
+========================================================= */
 
 renderApp();
 startPreviewReel();
 
+
+/* =========================================================
+   7. BUTTON EVENT LISTENERS
+
+   These tell the browser what to do when the user clicks buttons.
+========================================================= */
+
 addFolderButton.addEventListener("click", startFolderScan);
 heroAddFolderButton.addEventListener("click", startFolderScan);
+
 exportLibraryButton.addEventListener("click", exportLibrary);
 clearLibraryButton.addEventListener("click", clearLibrary);
 
 folderInput.addEventListener("change", handleFallbackFolderScan);
+
+
+/* =========================================================
+   8. SEARCH / FILTER / SORT EVENTS
+
+   These update the movie grid immediately when the user changes:
+   - search text
+   - quality filter
+   - sort dropdown
+========================================================= */
 
 searchInput.addEventListener("input", renderMovies);
 sortSelect.addEventListener("change", renderMovies);
@@ -94,8 +209,20 @@ filterChips.forEach((chip) => {
   });
 });
 
+
+/* =========================================================
+   9. PREVIEW REEL EVENTS
+
+   Mute button:
+   Turns sound on/off.
+
+   Preview video click:
+   Pauses or plays the preview.
+========================================================= */
+
 mutePreviewButton.addEventListener("click", () => {
   previewMuted = !previewMuted;
+
   previewVideo.muted = previewMuted;
   mutePreviewButton.textContent = previewMuted ? "🔇" : "🔊";
 
@@ -107,6 +234,15 @@ mutePreviewButton.addEventListener("click", () => {
 });
 
 previewVideo.addEventListener("click", togglePreviewPlayback);
+
+
+/* =========================================================
+   10. MODAL EVENTS
+
+   Close button closes the movie details popup.
+   Clicking the dark background also closes it.
+   Escape key closes it too.
+========================================================= */
 
 closeModalButton.addEventListener("click", closeMovieModal);
 
@@ -122,6 +258,19 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+
+/* =========================================================
+   11. START FOLDER SCAN
+
+   This opens the folder picker.
+
+   Chrome / Edge:
+   Uses showDirectoryPicker when available.
+
+   Fallback:
+   Uses hidden input folder picker.
+========================================================= */
+
 async function startFolderScan() {
   showToast("Choose a movie folder from your PC or external drive.");
 
@@ -131,6 +280,18 @@ async function startFolderScan() {
     folderInput.click();
   }
 }
+
+
+/* =========================================================
+   12. SCAN WITH DIRECTORY PICKER
+
+   This is the modern folder scanning method.
+
+   It scans:
+   - selected folder
+   - subfolders
+   - supported video files
+========================================================= */
 
 async function scanWithDirectoryPicker() {
   try {
@@ -153,6 +314,25 @@ async function scanWithDirectoryPicker() {
   }
 }
 
+
+/* =========================================================
+   13. RECURSIVE FOLDER SCANNER
+
+   This function scans through folders and subfolders.
+
+   directoryHandle:
+   The current folder being scanned.
+
+   scannedMovies:
+   The array where found movie files are stored.
+
+   sourceName:
+   The main folder/HDD name.
+
+   currentPath:
+   The path being built as the scanner moves through folders.
+========================================================= */
+
 async function scanDirectoryHandle(directoryHandle, scannedMovies, sourceName, currentPath) {
   for await (const entry of directoryHandle.values()) {
     const nextPath = `${currentPath}/${entry.name}`;
@@ -172,6 +352,16 @@ async function scanDirectoryHandle(directoryHandle, scannedMovies, sourceName, c
   }
 }
 
+
+/* =========================================================
+   14. FALLBACK FOLDER SCANNER
+
+   This runs when the browser does not support showDirectoryPicker.
+
+   It reads files from:
+   <input id="folderInput" webkitdirectory>
+========================================================= */
+
 async function handleFallbackFolderScan(event) {
   const files = Array.from(event.target.files);
   const movieFiles = files.filter((file) => isMovieFile(file.name));
@@ -189,6 +379,27 @@ async function handleFallbackFolderScan(event) {
 
   folderInput.value = "";
 }
+
+
+/* =========================================================
+   15. CREATE MOVIE OBJECT
+
+   This converts a real local File into a movie object.
+
+   It creates:
+   - id
+   - clean title
+   - file name
+   - path
+   - source folder
+   - extension
+   - quality
+   - size
+   - thumbnail
+   - scanned date
+
+   It also creates a temporary local video URL for the preview reel.
+========================================================= */
 
 async function createMovieFromFile(file, path, sourceName) {
   const id = createId();
@@ -213,6 +424,19 @@ async function createMovieFromFile(file, path, sourceName) {
   };
 }
 
+
+/* =========================================================
+   16. SAVE SCANNED MOVIES
+
+   This adds newly scanned movies to the saved catalog.
+
+   It does NOT replace your old scans.
+   It adds new folders into one central library.
+
+   Duplicate check:
+   Uses file name + file size.
+========================================================= */
+
 function saveScannedMovies(scannedMovies) {
   if (scannedMovies.length === 0) {
     showToast("No supported movie files found.");
@@ -220,6 +444,7 @@ function saveScannedMovies(scannedMovies) {
   }
 
   const exactDuplicateKeys = new Set(movies.map((movie) => getExactDuplicateKey(movie)));
+
   const newMovies = [];
   let skippedDuplicates = 0;
 
@@ -259,12 +484,35 @@ function saveScannedMovies(scannedMovies) {
   }
 }
 
+
+/* =========================================================
+   17. RENDER FULL APP
+
+   This redraws:
+   - stats
+   - storage folders
+   - filter chips
+   - movie grid
+========================================================= */
+
 function renderApp() {
   renderStats();
   renderSources();
   updateFilterChips();
   renderMovies();
 }
+
+
+/* =========================================================
+   18. RENDER STATS
+
+   Updates:
+   - total movies
+   - total storage
+   - folder count
+   - duplicate count
+   - last scan text
+========================================================= */
 
 function renderStats() {
   const totalBytes = movies.reduce((sum, movie) => sum + Number(movie.sizeBytes || 0), 0);
@@ -276,6 +524,7 @@ function renderStats() {
   storageTotal.textContent = formatBytes(totalBytes);
   folderCount.textContent = sources.length;
   duplicateCount.textContent = duplicateIds.size;
+
   lastScanText.textContent = `Last scan: ${savedLastScan ? formatDate(savedLastScan, true) : "Never"}`;
 
   if (movies.length === 0) {
@@ -284,6 +533,13 @@ function renderStats() {
     statusText.textContent = `Last scan: ${savedLastScan ? formatDate(savedLastScan, true) : "Just now"}`;
   }
 }
+
+
+/* =========================================================
+   19. RENDER STORAGE SOURCES
+
+   Shows each added folder/HDD as a pill.
+========================================================= */
 
 function renderSources() {
   const sources = getSources();
@@ -307,8 +563,23 @@ function renderSources() {
   });
 }
 
+
+/* =========================================================
+   20. RENDER MOVIE GRID
+
+   This creates the visible movie cards.
+
+   It handles:
+   - quality filter
+   - search filter
+   - sorting
+   - empty state
+   - duplicate badge
+========================================================= */
+
 function renderMovies() {
   let filteredMovies = [...movies];
+
   const searchTerm = searchInput.value.toLowerCase().trim();
   const sortValue = sortSelect.value;
   const duplicateIds = getDuplicateMovieIds();
@@ -402,6 +673,16 @@ function renderMovies() {
   });
 }
 
+
+/* =========================================================
+   21. START PREVIEW REEL
+
+   Starts the hero video preview if local session video URLs exist.
+
+   Important:
+   Preview clips only work in the same session after scanning.
+========================================================= */
+
 function startPreviewReel() {
   const candidates = getPreviewCandidates();
 
@@ -412,6 +693,15 @@ function startPreviewReel() {
 
   playRandomPreview();
 }
+
+
+/* =========================================================
+   22. PLAY RANDOM PREVIEW
+
+   Picks a random movie from the scanned session,
+   starts somewhere in the movie,
+   and plays a 1-minute muted preview.
+========================================================= */
 
 function playRandomPreview() {
   const candidates = getPreviewCandidates();
@@ -454,6 +744,7 @@ function playRandomPreview() {
 
   previewVideo.onloadedmetadata = () => {
     const duration = Number.isFinite(previewVideo.duration) ? previewVideo.duration : 0;
+
     const clipLength = duration > 0
       ? Math.min(PREVIEW_CLIP_SECONDS, Math.max(1, duration))
       : PREVIEW_CLIP_SECONDS;
@@ -516,6 +807,13 @@ function playRandomPreview() {
   previewVideo.load();
 }
 
+
+/* =========================================================
+   23. PREVIEW PROGRESS BAR
+
+   Updates the preview timer and progress line.
+========================================================= */
+
 function beginPreviewProgress(totalSeconds) {
   clearInterval(previewProgressTimer);
 
@@ -531,6 +829,13 @@ function beginPreviewProgress(totalSeconds) {
     }
   }, 350);
 }
+
+
+/* =========================================================
+   24. TOGGLE PREVIEW PLAYBACK
+
+   Clicking the preview pauses/plays the video.
+========================================================= */
 
 function togglePreviewPlayback() {
   if (!previewVideo.src) {
@@ -550,6 +855,13 @@ function togglePreviewPlayback() {
     previewPlayIcon.textContent = "▶";
   }
 }
+
+
+/* =========================================================
+   25. PREVIEW FALLBACK
+
+   Shows fallback art when no preview video is available.
+========================================================= */
 
 function renderPreviewFallback() {
   clearPreviewTimers();
@@ -572,16 +884,38 @@ function renderPreviewFallback() {
   previewTime.textContent = `00:00 / ${formatTime(PREVIEW_CLIP_SECONDS)}`;
 }
 
+
+/* =========================================================
+   26. GET PREVIEW CANDIDATES
+
+   Only movies scanned during the current browser session
+   can be previewed as video clips.
+========================================================= */
+
 function getPreviewCandidates() {
   return movies.filter((movie) => {
     return sessionVideoUrls.has(movie.id) && !failedPreviewIds.has(movie.id);
   });
 }
 
+
+/* =========================================================
+   27. CLEAR PREVIEW TIMERS
+
+   Stops existing preview timers before starting a new preview.
+========================================================= */
+
 function clearPreviewTimers() {
   clearInterval(previewProgressTimer);
   clearTimeout(previewSwitchTimer);
 }
+
+
+/* =========================================================
+   28. OPEN MOVIE MODAL
+
+   Shows detailed movie file info when a movie card is clicked.
+========================================================= */
 
 function openMovieModal(movieId) {
   const movie = movies.find((item) => item.id === movieId);
@@ -617,9 +951,24 @@ function openMovieModal(movieId) {
   movieModal.classList.remove("hidden");
 }
 
+
+/* =========================================================
+   29. CLOSE MOVIE MODAL
+========================================================= */
+
 function closeMovieModal() {
   movieModal.classList.add("hidden");
 }
+
+
+/* =========================================================
+   30. CREATE VIDEO THUMBNAIL
+
+   This tries to capture a still frame from the middle of the video.
+
+   Some file formats/codecs may fail in the browser.
+   If it fails, the movie card still appears without a thumbnail.
+========================================================= */
 
 function createVideoThumbnail(file) {
   return new Promise((resolve) => {
@@ -719,6 +1068,15 @@ function createVideoThumbnail(file) {
   });
 }
 
+
+/* =========================================================
+   31. EXPORT LIBRARY
+
+   Downloads your catalog as a JSON file.
+
+   This exports metadata only, not actual movie files.
+========================================================= */
+
 function exportLibrary() {
   if (movies.length === 0) {
     showToast("Add movies before exporting.");
@@ -752,6 +1110,16 @@ function exportLibrary() {
   showToast("Library exported.");
 }
 
+
+/* =========================================================
+   32. CLEAR LIBRARY
+
+   Clears:
+   - saved catalog
+   - current preview URLs
+   - filters/search
+========================================================= */
+
 function clearLibrary() {
   const confirmed = confirm("Clear your saved Cinema Library catalog?");
 
@@ -779,6 +1147,15 @@ function clearLibrary() {
   closeMovieModal();
   showToast("Library cleared.");
 }
+
+
+/* =========================================================
+   33. SAVE MOVIES TO LOCAL STORAGE
+
+   Saves metadata locally.
+
+   If thumbnails are too large, it saves metadata only.
+========================================================= */
 
 function saveMoviesToStorage() {
   const metadataMovies = movies.map((movie) => {
@@ -817,6 +1194,13 @@ function saveMoviesToStorage() {
   }
 }
 
+
+/* =========================================================
+   34. LOAD MOVIES FROM STORAGE
+
+   Loads the saved catalog when the app opens.
+========================================================= */
+
 function loadMovies() {
   const saved = localStorage.getItem(STORAGE_KEY);
 
@@ -850,6 +1234,11 @@ function loadMovies() {
   }
 }
 
+
+/* =========================================================
+   35. FILE CHECK HELPERS
+========================================================= */
+
 function isMovieFile(fileName) {
   const lowerName = fileName.toLowerCase();
 
@@ -861,6 +1250,15 @@ function getExtension(fileName) {
 
   return parts.length > 1 ? parts.pop().toUpperCase() : "Unknown";
 }
+
+
+/* =========================================================
+   36. QUALITY DETECTION
+
+   This guesses quality from the file name.
+   Example:
+   Avatar.2160p.mkv becomes 4K.
+========================================================= */
 
 function detectQuality(fileName) {
   const lowerName = fileName.toLowerCase();
@@ -892,6 +1290,13 @@ function detectQuality(fileName) {
   return "Unknown";
 }
 
+
+/* =========================================================
+   37. CLEAN MOVIE TITLE
+
+   Removes common quality/codec words from file names.
+========================================================= */
+
 function cleanMovieTitle(fileName) {
   const cleaned = fileName
     .replace(/\.[^/.]+$/, "")
@@ -902,6 +1307,13 @@ function cleanMovieTitle(fileName) {
 
   return cleaned || fileName;
 }
+
+
+/* =========================================================
+   38. SORT MOVIES
+
+   Controls sort dropdown behavior.
+========================================================= */
 
 function sortMovies(movieList, sortValue) {
   const qualityRank = {
@@ -934,6 +1346,11 @@ function sortMovies(movieList, sortValue) {
 
   return movieList;
 }
+
+
+/* =========================================================
+   39. SOURCE / DUPLICATE HELPERS
+========================================================= */
 
 function getSources() {
   const sources = movies.map((movie) => getSourceName(movie));
@@ -980,11 +1397,25 @@ function normalizeTitle(title) {
     .trim();
 }
 
+
+/* =========================================================
+   40. FILTER CHIP UI
+
+   Makes the clicked quality chip look active.
+========================================================= */
+
 function updateFilterChips() {
   filterChips.forEach((chip) => {
     chip.classList.toggle("active", chip.dataset.quality === activeQuality);
   });
 }
+
+
+/* =========================================================
+   41. TEMP VIDEO URL CLEANUP
+
+   Prevents memory leaks by revoking temporary video URLs.
+========================================================= */
 
 function revokeSessionUrl(movieId) {
   const url = sessionVideoUrls.get(movieId);
@@ -1002,6 +1433,11 @@ function revokeAllSessionUrls() {
 
   sessionVideoUrls.clear();
 }
+
+
+/* =========================================================
+   42. FORMAT HELPERS
+========================================================= */
 
 function formatBytes(bytes) {
   if (!bytes) {
@@ -1059,6 +1495,14 @@ function getPosterTitle(title, maxLength = 32) {
   return title.length > maxLength ? `${title.slice(0, maxLength)}...` : title;
 }
 
+
+/* =========================================================
+   43. CREATE ID
+
+   crypto.randomUUID is best.
+   Fallback is used if the browser does not support it.
+========================================================= */
+
 function createId() {
   if (crypto.randomUUID) {
     return crypto.randomUUID();
@@ -1066,6 +1510,13 @@ function createId() {
 
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
+
+
+/* =========================================================
+   44. TOAST MESSAGE
+
+   Shows temporary messages at bottom-right.
+========================================================= */
 
 function showToast(message) {
   toast.textContent = message;
@@ -1075,6 +1526,14 @@ function showToast(message) {
     toast.classList.remove("show");
   }, 3000);
 }
+
+
+/* =========================================================
+   45. HTML ESCAPE
+
+   Prevents file names from breaking the page if they contain
+   special characters.
+========================================================= */
 
 function escapeHTML(text) {
   return String(text)
