@@ -1,31 +1,93 @@
+/* =========================================================
+   CINEMA LIBRARY — STYLE.CSS
+
+   WHAT THIS FILE DOES:
+   This file controls the full visual design of the app:
+   - colors
+   - spacing
+   - layout
+   - buttons
+   - hero preview area
+   - movie cards
+   - modal popup
+   - responsive mobile/tablet layout
+
+   SAFE TO CHANGE:
+   Most visual values are safe to change.
+
+   BE CAREFUL CHANGING:
+   Class names like .top-shell, .hero-panel, .movie-grid
+   because the HTML uses them.
+========================================================= */
+
+
+/* =========================================================
+   1. GLOBAL RESET
+
+   This removes browser default spacing so the design looks
+   consistent across Chrome, Edge, Safari, etc.
+========================================================= */
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+
+/* =========================================================
+   2. EASY DESIGN SETTINGS
+
+   This is the easiest section to customize.
+
+   Change colors here instead of hunting through the whole file.
+
+   Examples:
+   --blue changes the main button color.
+   --bg changes the page background.
+   --radius-xl changes how rounded the big panels are.
+========================================================= */
+
 :root {
   --bg: #05070c;
+
   --panel: rgba(14, 22, 34, 0.86);
   --panel-soft: rgba(255, 255, 255, 0.055);
   --panel-strong: rgba(18, 27, 40, 0.94);
+
   --text: #f6f7fb;
   --muted: #9ca7b7;
   --muted-strong: #c9d1df;
+
   --blue: #0a74ff;
   --blue-bright: #1684ff;
   --blue-soft: rgba(10, 116, 255, 0.18);
+
   --green: #20d46b;
   --purple: #9b5cff;
   --orange: #f5a524;
   --red: #ff4d45;
+
   --border: rgba(255, 255, 255, 0.12);
   --border-strong: rgba(255, 255, 255, 0.2);
+
   --shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
+
   --radius-xl: 28px;
   --radius-lg: 22px;
   --radius-md: 16px;
 }
+
+
+/* =========================================================
+   3. PAGE BASICS
+
+   Body controls the whole page:
+   - font
+   - text color
+   - dark blue background
+   - soft glow effects
+========================================================= */
 
 html {
   scroll-behavior: smooth;
@@ -41,6 +103,16 @@ body {
     radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.07), transparent 24%),
     linear-gradient(135deg, #02040a 0%, #07101b 48%, #03050a 100%);
 }
+
+
+/* =========================================================
+   4. FORM + BUTTON BASE STYLES
+
+   These are the default styles for all:
+   - buttons
+   - inputs
+   - select dropdowns
+========================================================= */
 
 button,
 input,
@@ -76,6 +148,7 @@ select:focus {
   box-shadow: 0 0 0 4px rgba(10, 116, 255, 0.16);
 }
 
+/* This creates the small arrow look inside dropdowns. */
 select {
   appearance: none;
   padding-right: 44px;
@@ -89,9 +162,19 @@ select {
   background-repeat: no-repeat;
 }
 
+/* Used by JavaScript to hide/show sections. Do not remove. */
 .hidden {
   display: none !important;
 }
+
+
+/* =========================================================
+   5. MAIN PAGE WRAPPER
+
+   .app-page is the outer container.
+   It keeps the design centered and prevents it from stretching
+   too wide on large monitors.
+========================================================= */
 
 .app-page {
   width: min(1680px, 100%);
@@ -99,7 +182,18 @@ select {
   padding: 16px;
 }
 
-/* Top Header */
+
+/* =========================================================
+   6. TOP HEADER
+
+   This matches the top bar in the mockup:
+   - left brand
+   - center search
+   - right buttons
+
+   To make the header taller:
+   Change min-height under .top-shell.
+========================================================= */
 
 .top-shell {
   min-height: 86px;
@@ -117,6 +211,13 @@ select {
   box-shadow: var(--shadow);
   backdrop-filter: blur(26px);
 }
+
+
+/* =========================================================
+   7. BRAND AREA
+
+   This controls the Cinema Library logo and subtitle.
+========================================================= */
 
 .brand {
   display: flex;
@@ -153,6 +254,14 @@ select {
   font-size: 0.98rem;
 }
 
+
+/* =========================================================
+   8. SEARCH BAR
+
+   .search-box controls the pill/box in the top header.
+   The span is the search icon.
+========================================================= */
+
 .search-box {
   position: relative;
   max-width: 620px;
@@ -177,6 +286,13 @@ select {
   padding-left: 56px;
   font-size: 1rem;
 }
+
+
+/* =========================================================
+   9. HEADER BUTTONS
+
+   This controls Add Movie Folder, Export, and Clear.
+========================================================= */
 
 .header-actions {
   display: flex;
@@ -220,7 +336,20 @@ select {
   transform: translateY(-2px);
 }
 
-/* Hero */
+
+/* =========================================================
+   10. HERO SECTION
+
+   This is the big top section:
+   - left text
+   - right preview video card
+
+   To make the whole hero section taller:
+   Change min-height on .hero-panel.
+
+   To make the preview card wider:
+   Change grid-template-columns on .hero-panel.
+========================================================= */
 
 .hero-panel {
   min-height: 405px;
@@ -273,6 +402,13 @@ select {
   margin-top: 34px;
 }
 
+
+/* =========================================================
+   11. HERO STATUS LINE
+
+   The glowing dot and scan status text.
+========================================================= */
+
 .scan-line {
   display: flex;
   gap: 12px;
@@ -294,6 +430,16 @@ select {
   font-size: 0.98rem;
 }
 
+
+/* =========================================================
+   12. PREVIEW REEL CARD
+
+   This is the right-side video preview area.
+
+   When JavaScript successfully loads a local movie preview,
+   it adds .has-video to .preview-card.
+========================================================= */
+
 .preview-card {
   position: relative;
   min-height: 320px;
@@ -308,6 +454,7 @@ select {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+/* The actual local video element. Hidden until playable. */
 .preview-card video {
   position: absolute;
   inset: 0;
@@ -324,6 +471,17 @@ select {
 .preview-card.has-video .preview-fallback {
   display: none;
 }
+
+
+/* =========================================================
+   13. PREVIEW FALLBACK ART
+
+   This is the fake visual image shown before scanning,
+   or when browser video preview is unavailable.
+
+   You can replace this SVG background later with a real image
+   if you want.
+========================================================= */
 
 .preview-fallback {
   position: absolute;
@@ -377,6 +535,7 @@ select {
   text-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
 }
 
+/* This creates the dark overlay over both fallback and video. */
 .preview-card::after {
   content: "";
   position: absolute;
@@ -386,6 +545,13 @@ select {
     linear-gradient(90deg, rgba(0, 0, 0, 0.46), transparent 52%),
     linear-gradient(transparent 45%, rgba(0, 0, 0, 0.72));
 }
+
+
+/* =========================================================
+   14. PREVIEW BUTTON + OVERLAY CONTROLS
+
+   These sit on top of the preview card.
+========================================================= */
 
 .mute-button {
   position: absolute;
@@ -464,7 +630,13 @@ select {
   line-height: 1;
 }
 
-/* Stats */
+
+/* =========================================================
+   15. STATS ROW
+
+   This controls the 4 cards:
+   Movies, Storage, Folders, Duplicates.
+========================================================= */
 
 .stats-grid {
   display: grid;
@@ -537,7 +709,14 @@ select {
   letter-spacing: -0.045em;
 }
 
-/* Filters */
+
+/* =========================================================
+   16. FILTER BAR
+
+   This controls:
+   - All / 4K / 1080p / etc buttons
+   - dropdown filters on the right
+========================================================= */
 
 .filter-bar,
 .source-panel,
@@ -593,7 +772,12 @@ select {
   gap: 14px;
 }
 
-/* Sources */
+
+/* =========================================================
+   17. STORAGE FOLDERS BAR
+
+   This shows each folder/HDD source as a pill.
+========================================================= */
 
 .source-panel {
   min-height: 66px;
@@ -642,7 +826,12 @@ select {
   font-weight: 700;
 }
 
-/* Library */
+
+/* =========================================================
+   18. MOVIE LIBRARY PANEL
+
+   This is the large section that contains the grid.
+========================================================= */
 
 .library-panel {
   padding: 18px 24px;
@@ -673,6 +862,13 @@ select {
   font-weight: 600;
 }
 
+
+/* =========================================================
+   19. EMPTY STATE
+
+   This shows before the user scans any movie folders.
+========================================================= */
+
 .empty-state {
   min-height: 300px;
   display: grid;
@@ -702,11 +898,33 @@ select {
   line-height: 1.6;
 }
 
+
+/* =========================================================
+   20. MOVIE GRID
+
+   This controls how many movie cards appear per row.
+
+   Current desktop setting:
+   repeat(10, minmax(118px, 1fr))
+
+   To make cards bigger:
+   Change 10 to 7 or 8.
+   Example:
+   grid-template-columns: repeat(7, minmax(150px, 1fr));
+========================================================= */
+
 .movie-grid {
   display: grid;
   grid-template-columns: repeat(10, minmax(118px, 1fr));
   gap: 14px;
 }
+
+
+/* =========================================================
+   21. MOVIE CARD
+
+   Each scanned movie becomes one card.
+========================================================= */
 
 .movie-card {
   min-width: 0;
@@ -816,7 +1034,12 @@ select {
   background: rgba(255, 77, 69, 0.16) !important;
 }
 
-/* Modal */
+
+/* =========================================================
+   22. MOVIE DETAILS MODAL
+
+   This popup appears when you click a movie.
+========================================================= */
 
 .modal {
   position: fixed;
@@ -984,6 +1207,13 @@ select {
   font-weight: 850;
 }
 
+
+/* =========================================================
+   23. TOAST MESSAGE
+
+   Small popup message in the bottom-right.
+========================================================= */
+
 .toast {
   position: fixed;
   right: 22px;
@@ -1008,7 +1238,12 @@ select {
   opacity: 1;
 }
 
-/* Responsive */
+
+/* =========================================================
+   24. RESPONSIVE DESIGN — MEDIUM SCREENS
+
+   This kicks in when the screen gets narrower than 1350px.
+========================================================= */
 
 @media (max-width: 1350px) {
   .top-shell {
@@ -1038,6 +1273,13 @@ select {
     grid-template-columns: repeat(6, minmax(120px, 1fr));
   }
 }
+
+
+/* =========================================================
+   25. RESPONSIVE DESIGN — TABLETS
+
+   This kicks in under 980px.
+========================================================= */
 
 @media (max-width: 980px) {
   .stats-grid {
@@ -1080,6 +1322,13 @@ select {
     padding: 0;
   }
 }
+
+
+/* =========================================================
+   26. RESPONSIVE DESIGN — PHONES
+
+   This makes the app usable on small screens.
+========================================================= */
 
 @media (max-width: 680px) {
   .app-page {
