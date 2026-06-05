@@ -2,10 +2,21 @@ const STORAGE_KEY = "cinemaLibraryMovies";
 const SCAN_KEY = "cinemaLibraryLastScan";
 
 const supportedExtensions = [".mp4", ".mkv", ".mov", ".avi", ".webm", ".m4v"];
+const PREVIEW_CLIP_SECONDS = 60;
 
 let movies = loadMovies();
 let selectedMovieId = movies[0]?.id || null;
 let activeQuality = "all";
+
+const sessionVideoUrls = new Map();
+const failedPreviewIds = new Set();
+
+let previewMuted = true;
+let currentPreviewMovieId = null;
+let previewStartTime = 0;
+let previewEndTime = PREVIEW_CLIP_SECONDS;
+let previewProgressTimer = null;
+let previewSwitchTimer = null;
 
 const addFolderButton = document.getElementById("addFolderButton");
 const heroAddFolderButton = document.getElementById("heroAddFolderButton");
@@ -18,11 +29,7 @@ const qualityFilter = document.getElementById("qualityFilter");
 const sortSelect = document.getElementById("sortSelect");
 const filterChips = document.querySelectorAll(".filter-chip");
 
-const heroTitle = document.getElementById("heroTitle");
-const heroDescription = document.getElementById("heroDescription");
-const heroPoster = document.getElementById("heroPoster");
 const statusText = document.getElementById("statusText");
-
 const movieCount = document.getElementById("movieCount");
 const storageTotal = document.getElementById("storageTotal");
 const folderCount = document.getElementById("folderCount");
@@ -34,11 +41,19 @@ const lastScanText = document.getElementById("lastScanText");
 const emptyState = document.getElementById("emptyState");
 const movieGrid = document.getElementById("movieGrid");
 
+const previewVideo = document.getElementById("previewVideo");
+const previewCard = previewVideo.closest(".preview-card");
+const previewFallback = document.getElementById("previewFallback");
+const mutePreviewButton = document.getElementById("mutePreviewButton");
+const previewTitle = document.getElementById("previewTitle");
+const previewSubtitle = document.getElementById("previewSubtitle");
+const previewPlayIcon = document.getElementById("previewPlayIcon");
+const previewProgress = document.getElementById("previewProgress");
+const previewTime = document.getElementById("previewTime");
+
 const movieModal = document.getElementById("movieModal");
 const closeModalButton = document.getElementById("closeModalButton");
 const modalPoster = document.getElementById("modalPoster");
-const modalPosterQuality = document.getElementById("modalPosterQuality");
-const modalPosterTitle = document.getElementById("modalPosterTitle");
 const modalTitle = document.getElementById("modalTitle");
 const modalQuality = document.getElementById("modalQuality");
 const modalType = document.getElementById("modalType");
@@ -52,6 +67,7 @@ const modalDuplicateWarning = document.getElementById("modalDuplicateWarning");
 const toast = document.getElementById("toast");
 
 renderApp();
+startPreviewReel();
 
 addFolderButton.addEventListener("click", startFolderScan);
 heroAddFolderButton.addEventListener("click", startFolderScan);
@@ -77,6 +93,20 @@ filterChips.forEach((chip) => {
     renderMovies();
   });
 });
+
+mutePreviewButton.addEventListener("click", () => {
+  previewMuted = !previewMuted;
+  previewVideo.muted = previewMuted;
+  mutePreviewButton.textContent = previewMuted ? "🔇" : "🔊";
+
+  if (!previewMuted) {
+    previewVideo.play().catch(() => {
+      showToast("Click the preview to play with sound.");
+    });
+  }
+});
+
+previewVideo.addEventListener("click", togglePreviewPlayback);
 
 closeModalButton.addEventListener("click", closeMovieModal);
 
@@ -161,13 +191,16 @@ async function handleFallbackFolderScan(event) {
 }
 
 async function createMovieFromFile(file, path, sourceName) {
+  const id = createId();
   const title = cleanMovieTitle(file.name);
   const extension = getExtension(file.name);
   const quality = detectQuality(file.name);
   const poster = await createVideoThumbnail(file);
 
+  sessionVideoUrls.set(id, URL.createObjectURL(file));
+
   return {
-    id: createId(),
+    id,
     title,
     fileName: file.name,
     path,
@@ -195,6 +228,7 @@ function saveScannedMovies(scannedMovies) {
 
     if (exactDuplicateKeys.has(duplicateKey)) {
       skippedDuplicates += 1;
+      revokeSessionUrl(movie.id);
       return;
     }
 
@@ -213,7 +247,10 @@ function saveScannedMovies(scannedMovies) {
   localStorage.setItem(SCAN_KEY, new Date().toISOString());
   saveMoviesToStorage();
 
+  failedPreviewIds.clear();
+
   renderApp();
+  startPreviewReel();
 
   if (skippedDuplicates > 0) {
     showToast(`Added ${newMovies.length} movie(s). Skipped ${skippedDuplicates} duplicate file(s).`);
@@ -225,7 +262,6 @@ function saveScannedMovies(scannedMovies) {
 function renderApp() {
   renderStats();
   renderSources();
-  renderHero();
   updateFilterChips();
   renderMovies();
 }
@@ -240,12 +276,12 @@ function renderStats() {
   storageTotal.textContent = formatBytes(totalBytes);
   folderCount.textContent = sources.length;
   duplicateCount.textContent = duplicateIds.size;
-  lastScanText.textContent = `Last scan: ${savedLastScan ? formatDate(savedLastScan) : "Never"}`;
+  lastScanText.textContent = `Last scan: ${savedLastScan ? formatDate(savedLastScan, true) : "Never"}`;
 
   if (movies.length === 0) {
     statusText.textContent = "No folders added yet.";
   } else {
-    statusText.textContent = `${movies.length} movie file(s) saved locally.`;
+    statusText.textContent = `Last scan: ${savedLastScan ? formatDate(savedLastScan, true) : "Just now"}`;
   }
 }
 
@@ -269,33 +305,6 @@ function renderSources() {
 
     sourceList.appendChild(pill);
   });
-}
-
-function renderHero() {
-  const selectedMovie = getSelectedMovie();
-
-  if (!selectedMovie) {
-    heroTitle.textContent = "Your movies, one clean library.";
-    heroDescription.textContent =
-      "Add folders from your Windows PC or external HDDs. Cinema Library saves a local catalog, combines everything into one grid, and keeps your actual videos on your own drives.";
-
-    heroPoster.innerHTML = `
-      <span>LOCAL</span>
-      <strong>Movie Catalog</strong>
-    `;
-
-    return;
-  }
-
-  heroTitle.textContent = selectedMovie.title || selectedMovie.fileName;
-  heroDescription.textContent =
-    `${selectedMovie.quality} • ${selectedMovie.extension} • ${formatBytes(selectedMovie.sizeBytes)} • ${getSourceName(selectedMovie)}`;
-
-  heroPoster.innerHTML = `
-    ${selectedMovie.poster ? `<img src="${selectedMovie.poster}" alt="${escapeHTML(selectedMovie.title)} thumbnail" />` : ""}
-    <span>${escapeHTML(selectedMovie.quality)}</span>
-    <strong>${escapeHTML(getPosterTitle(selectedMovie.title || selectedMovie.fileName, 42))}</strong>
-  `;
 }
 
 function renderMovies() {
@@ -340,7 +349,7 @@ function renderMovies() {
   if (filteredMovies.length === 0) {
     movieGrid.innerHTML = `
       <section class="empty-state">
-        <div class="empty-card">
+        <div>
           <div class="empty-icon">🔎</div>
           <h3>No matching movies found.</h3>
           <p>Try changing your search, quality filter, or sort option.</p>
@@ -368,11 +377,10 @@ function renderMovies() {
       <div class="movie-poster">
         ${movie.poster ? `<img src="${movie.poster}" alt="${escapeHTML(movie.title)} thumbnail" />` : ""}
         <span>${escapeHTML(movie.quality)}</span>
-        <strong>${escapeHTML(getPosterTitle(movie.title || movie.fileName, 30))}</strong>
       </div>
 
       <div class="movie-info">
-        <h3>${escapeHTML(movie.title || movie.fileName)}</h3>
+        <h3>${escapeHTML(getPosterTitle(movie.title || movie.fileName, 28))}</h3>
 
         <div class="movie-meta">
           <span>${escapeHTML(movie.extension || "Unknown")}</span>
@@ -380,19 +388,199 @@ function renderMovies() {
           ${isDuplicate ? `<span class="duplicate-chip">Duplicate?</span>` : ""}
         </div>
 
-        <p class="movie-source">${escapeHTML(getSourceName(movie))}</p>
+        <p class="movie-source">▱ ${escapeHTML(getSourceName(movie))}</p>
       </div>
     `;
 
     card.addEventListener("click", () => {
       selectedMovieId = movie.id;
-      renderHero();
       renderMovies();
       openMovieModal(movie.id);
     });
 
     movieGrid.appendChild(card);
   });
+}
+
+function startPreviewReel() {
+  const candidates = getPreviewCandidates();
+
+  if (candidates.length === 0) {
+    renderPreviewFallback();
+    return;
+  }
+
+  playRandomPreview();
+}
+
+function playRandomPreview() {
+  const candidates = getPreviewCandidates();
+
+  if (candidates.length === 0) {
+    renderPreviewFallback();
+    return;
+  }
+
+  clearPreviewTimers();
+
+  let movie = candidates[Math.floor(Math.random() * candidates.length)];
+
+  if (candidates.length > 1) {
+    let attempts = 0;
+
+    while (movie.id === currentPreviewMovieId && attempts < 5) {
+      movie = candidates[Math.floor(Math.random() * candidates.length)];
+      attempts += 1;
+    }
+  }
+
+  const videoUrl = sessionVideoUrls.get(movie.id);
+
+  currentPreviewMovieId = movie.id;
+  selectedMovieId = movie.id;
+
+  previewTitle.textContent = "Preview Reel";
+  previewSubtitle.textContent = movie.title || movie.fileName;
+  previewProgress.style.width = "0%";
+  previewTime.textContent = `00:00 / ${formatTime(PREVIEW_CLIP_SECONDS)}`;
+  previewPlayIcon.textContent = "Ⅱ";
+
+  previewVideo.pause();
+  previewVideo.removeAttribute("src");
+  previewVideo.load();
+
+  previewVideo.muted = previewMuted;
+  mutePreviewButton.textContent = previewMuted ? "🔇" : "🔊";
+
+  previewVideo.onloadedmetadata = () => {
+    const duration = Number.isFinite(previewVideo.duration) ? previewVideo.duration : 0;
+    const clipLength = duration > 0
+      ? Math.min(PREVIEW_CLIP_SECONDS, Math.max(1, duration))
+      : PREVIEW_CLIP_SECONDS;
+
+    const maxStart = Math.max(0, duration - clipLength - 1);
+    const randomStart = maxStart > 10 ? Math.floor(Math.random() * maxStart) : 0;
+
+    previewStartTime = randomStart;
+    previewEndTime = duration > 0 ? Math.min(duration, randomStart + clipLength) : PREVIEW_CLIP_SECONDS;
+
+    try {
+      previewVideo.currentTime = previewStartTime;
+    } catch {
+      previewStartTime = 0;
+    }
+  };
+
+  let playbackStarted = false;
+
+  const startPlayback = () => {
+    if (playbackStarted) {
+      return;
+    }
+
+    playbackStarted = true;
+
+    previewCard.classList.add("has-video");
+
+    const actualClipLength = Math.max(1, previewEndTime - previewStartTime);
+
+    previewVideo.play()
+      .then(() => {
+        previewPlayIcon.textContent = "Ⅱ";
+      })
+      .catch(() => {
+        previewPlayIcon.textContent = "▶";
+        showToast("Preview ready. Click the preview to play.");
+      });
+
+    beginPreviewProgress(actualClipLength);
+
+    previewSwitchTimer = setTimeout(() => {
+      playRandomPreview();
+    }, actualClipLength * 1000);
+  };
+
+  previewVideo.onseeked = startPlayback;
+  previewVideo.oncanplay = startPlayback;
+
+  previewVideo.onerror = () => {
+    failedPreviewIds.add(movie.id);
+    previewCard.classList.remove("has-video");
+
+    setTimeout(() => {
+      playRandomPreview();
+    }, 400);
+  };
+
+  previewVideo.src = videoUrl;
+  previewVideo.load();
+}
+
+function beginPreviewProgress(totalSeconds) {
+  clearInterval(previewProgressTimer);
+
+  previewProgressTimer = setInterval(() => {
+    const elapsed = Math.max(0, Math.min(totalSeconds, previewVideo.currentTime - previewStartTime));
+    const progress = Math.min(100, (elapsed / totalSeconds) * 100);
+
+    previewProgress.style.width = `${progress}%`;
+    previewTime.textContent = `${formatTime(elapsed)} / ${formatTime(totalSeconds)}`;
+
+    if (elapsed >= totalSeconds - 0.25) {
+      playRandomPreview();
+    }
+  }, 350);
+}
+
+function togglePreviewPlayback() {
+  if (!previewVideo.src) {
+    return;
+  }
+
+  if (previewVideo.paused) {
+    previewVideo.play()
+      .then(() => {
+        previewPlayIcon.textContent = "Ⅱ";
+      })
+      .catch(() => {
+        showToast("Preview could not start.");
+      });
+  } else {
+    previewVideo.pause();
+    previewPlayIcon.textContent = "▶";
+  }
+}
+
+function renderPreviewFallback() {
+  clearPreviewTimers();
+
+  previewVideo.pause();
+  previewVideo.removeAttribute("src");
+  previewVideo.load();
+
+  previewCard.classList.remove("has-video");
+  previewTitle.textContent = "Preview Reel";
+
+  if (movies.length > 0) {
+    previewSubtitle.textContent = "Add a folder again this session to enable local video previews.";
+  } else {
+    previewSubtitle.textContent = "Playing random clips from your library";
+  }
+
+  previewProgress.style.width = "0%";
+  previewPlayIcon.textContent = "Ⅱ";
+  previewTime.textContent = `00:00 / ${formatTime(PREVIEW_CLIP_SECONDS)}`;
+}
+
+function getPreviewCandidates() {
+  return movies.filter((movie) => {
+    return sessionVideoUrls.has(movie.id) && !failedPreviewIds.has(movie.id);
+  });
+}
+
+function clearPreviewTimers() {
+  clearInterval(previewProgressTimer);
+  clearTimeout(previewSwitchTimer);
 }
 
 function openMovieModal(movieId) {
@@ -407,8 +595,8 @@ function openMovieModal(movieId) {
 
   modalPoster.innerHTML = `
     ${movie.poster ? `<img src="${movie.poster}" alt="${escapeHTML(movie.title)} thumbnail" />` : ""}
-    <span id="modalPosterQuality">${escapeHTML(movie.quality)}</span>
-    <strong id="modalPosterTitle">${escapeHTML(getPosterTitle(movie.title || movie.fileName, 34))}</strong>
+    <span>${escapeHTML(movie.quality)}</span>
+    <strong>${escapeHTML(getPosterTitle(movie.title || movie.fileName, 34))}</strong>
   `;
 
   modalTitle.textContent = movie.title || movie.fileName;
@@ -418,7 +606,7 @@ function openMovieModal(movieId) {
   modalFileName.textContent = movie.fileName || "Unknown";
   modalSource.textContent = getSourceName(movie);
   modalPath.textContent = movie.path || "Unknown";
-  modalScannedAt.textContent = formatDate(movie.scannedAt);
+  modalScannedAt.textContent = formatDate(movie.scannedAt, true);
 
   if (duplicateIds.has(movie.id)) {
     modalDuplicateWarning.classList.remove("hidden");
@@ -463,9 +651,9 @@ function createVideoThumbnail(file) {
     video.addEventListener("loadedmetadata", () => {
       try {
         const duration = Number.isFinite(video.duration) ? video.duration : 0;
-        const midPoint = duration > 2 ? duration / 2 : 0.5;
+        const midpoint = duration > 2 ? duration / 2 : 0.5;
 
-        video.currentTime = midPoint;
+        video.currentTime = midpoint;
       } catch {
         clearTimeout(timeout);
         finish("");
@@ -571,9 +759,13 @@ function clearLibrary() {
     return;
   }
 
+  revokeAllSessionUrls();
+
   movies = [];
   selectedMovieId = null;
   activeQuality = "all";
+  currentPreviewMovieId = null;
+  failedPreviewIds.clear();
 
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(SCAN_KEY);
@@ -583,15 +775,31 @@ function clearLibrary() {
   sortSelect.value = "newest";
 
   renderApp();
+  renderPreviewFallback();
   closeMovieModal();
   showToast("Library cleared.");
 }
 
 function saveMoviesToStorage() {
+  const metadataMovies = movies.map((movie) => {
+    return {
+      id: movie.id,
+      title: movie.title,
+      fileName: movie.fileName,
+      path: movie.path,
+      sourceName: getSourceName(movie),
+      extension: movie.extension,
+      quality: movie.quality,
+      sizeBytes: movie.sizeBytes,
+      poster: movie.poster,
+      scannedAt: movie.scannedAt
+    };
+  });
+
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(movies));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(metadataMovies));
   } catch {
-    const metadataOnly = movies.map((movie) => {
+    const metadataOnly = metadataMovies.map((movie) => {
       return {
         ...movie,
         poster: ""
@@ -601,7 +809,7 @@ function saveMoviesToStorage() {
     movies = metadataOnly;
 
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(movies));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(metadataOnly));
       showToast("Saved catalog metadata. Thumbnails were too large for browser storage.");
     } catch {
       showToast("Browser storage is full. Export your catalog before clearing space.");
@@ -617,7 +825,26 @@ function loadMovies() {
   }
 
   try {
-    return JSON.parse(saved);
+    const parsed = JSON.parse(saved);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.map((movie) => {
+      return {
+        id: movie.id || createId(),
+        title: movie.title || cleanMovieTitle(movie.fileName || "Movie"),
+        fileName: movie.fileName || "Unknown File",
+        path: movie.path || "Unknown Path",
+        sourceName: movie.sourceName || movie.folderName || "Unknown Folder",
+        extension: movie.extension || getExtension(movie.fileName || ""),
+        quality: movie.quality || detectQuality(movie.fileName || ""),
+        sizeBytes: Number(movie.sizeBytes || 0),
+        poster: movie.poster || "",
+        scannedAt: movie.scannedAt || new Date().toISOString()
+      };
+    });
   } catch {
     return [];
   }
@@ -714,10 +941,6 @@ function getSources() {
   return [...new Set(sources)].sort((a, b) => a.localeCompare(b));
 }
 
-function getSelectedMovie() {
-  return movies.find((movie) => movie.id === selectedMovieId);
-}
-
 function getSourceName(movie) {
   return movie.sourceName || movie.folderName || "Unknown Folder";
 }
@@ -763,6 +986,23 @@ function updateFilterChips() {
   });
 }
 
+function revokeSessionUrl(movieId) {
+  const url = sessionVideoUrls.get(movieId);
+
+  if (url) {
+    URL.revokeObjectURL(url);
+    sessionVideoUrls.delete(movieId);
+  }
+}
+
+function revokeAllSessionUrls() {
+  sessionVideoUrls.forEach((url) => {
+    URL.revokeObjectURL(url);
+  });
+
+  sessionVideoUrls.clear();
+}
+
 function formatBytes(bytes) {
   if (!bytes) {
     return "0 GB";
@@ -775,7 +1015,7 @@ function formatBytes(bytes) {
   return `${value.toFixed(index >= 3 ? 2 : 1)} ${units[index]}`;
 }
 
-function formatDate(dateValue) {
+function formatDate(dateValue, includeTime = false) {
   if (!dateValue) {
     return "Never";
   }
@@ -786,11 +1026,29 @@ function formatDate(dateValue) {
     return "Unknown";
   }
 
+  if (includeTime) {
+    return date.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+  }
+
   return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric"
   });
+}
+
+function formatTime(seconds) {
+  const safeSeconds = Math.max(0, Math.floor(seconds || 0));
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+
+  return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
 }
 
 function getPosterTitle(title, maxLength = 32) {
